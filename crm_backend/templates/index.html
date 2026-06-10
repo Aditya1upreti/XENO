@@ -9,197 +9,405 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
 <style>
-    body{
-        background:#071A1F;
-        color:#ECFEFF;
-    }
+:root{
+    /* Base */
+    --bg:#050505;
+    --surface:#0D0D0D;
+    --card:#121212;
+    --card-elevated:#171717;
 
-    .glass-panel{
-        background:rgba(15,40,45,0.75);
-        backdrop-filter:blur(14px);
-        border:1px solid rgba(45,212,191,0.12);
-        box-shadow:
-            0 8px 32px rgba(0,0,0,0.25),
-            inset 0 1px 0 rgba(255,255,255,0.04);
-    }
+    /* Semantic Colors */
+    --revenue:#00E676;
+    --revenue-dark:#00C853;
+    --ai:#4FD1C5;
+    --vip:#D6A756;
+    --warning:#F59E0B;
+    --danger:#EF4444;
 
-    .nexus-gradient-text{
-        background:linear-gradient(
-            90deg,
-            #2DD4BF,
-            #22D3EE,
-            #67E8F9
-        );
-        -webkit-background-clip:text;
-        -webkit-text-fill-color:transparent;
-    }
+    /* Text */
+    --text-primary:#FAFAFA;
+    --text-secondary:#A3A3A3;
+    --text-muted:#6B7280;
+}
 
-    .card-hover{
-        transition:all .3s ease;
-    }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-    .card-hover:hover{
-        transform:translateY(-3px);
-        border-color:rgba(34,211,238,.25);
-        box-shadow:
-            0 12px 40px rgba(34,211,238,.12),
-            0 0 0 1px rgba(34,211,238,.08);
-    }
+body{
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family:Inter,system-ui,sans-serif;
+}
 
-    .hidden-scrollbar::-webkit-scrollbar{
-        display:none;
-    }
+/* Header */
+.header{
+    background:var(--surface);
+    border-bottom:1px solid rgba(255,255,255,.05);
+}
 
-    .hidden-scrollbar{
-        scrollbar-width:none;
-    }
+/* Logo */
+.nexus-gradient{
+    background:linear-gradient(90deg, var(--vip), #F2D28B);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
 
-    .cyber-glow{
-        box-shadow:
-            0 0 20px rgba(34,211,238,.25),
-            0 0 40px rgba(45,212,191,.12);
-    }
+/* Cards */
+.card{
+    background:var(--card);
+    border:1px solid rgba(255,255,255,.05);
+    border-radius:28px;
+    transition:.25s ease;
+}
 
-    .revenue-pill{
-        background:rgba(34,211,238,.10);
-        border:1px solid rgba(34,211,238,.18);
-    }
+.card:hover{
+    transform:translateY(-2px);
+    border-color:rgba(255,255,255,.08);
+    background:var(--card-elevated);
+}
 
-    .theater-bg{
-        background:
-        radial-gradient(
-            circle at center,
-            rgba(34,211,238,.08),
-            transparent 60%
-        );
-    }
+/* Dynamic Border Accents */
+.opportunity-vip { border-left:4px solid var(--vip); }
+.opportunity-revenue { border-left:4px solid var(--revenue); }
+.opportunity-ai { border-left:4px solid var(--ai); }
+.opportunity-risk { border-left:4px solid var(--warning); }
+
+/* Dynamic Badges */
+.vip-pill{ background:rgba(214,167,86,.10); color:var(--vip); border:1px solid rgba(214,167,86,.20); }
+.revenue-pill{ background:rgba(0,230,118,.10); color:var(--revenue); border:1px solid rgba(0,230,118,.20); }
+.ai-pill{ background:rgba(79,209,197,.10); color:var(--ai); border:1px solid rgba(79,209,197,.20); }
+.warning-pill{ background:rgba(245,158,11,.10); color:var(--warning); border:1px solid rgba(245,158,11,.20); }
+
+/* Revenue Amount */
+.revenue-value{ color:var(--revenue); font-weight:700; }
+
+/* CTA Button */
+.action-btn{
+    background:linear-gradient(135deg, var(--revenue), var(--revenue-dark));
+    color:#02110A;
+    font-weight:700;
+    box-shadow:0 8px 24px rgba(0,230,118,.08);
+    transition:.25s ease;
+}
+.action-btn:hover{ transform:translateY(-1px); }
+
+/* ARIA Copilot */
+.aria-section{
+    background:linear-gradient(180deg, rgba(79,209,197,.12), rgba(79,209,197,.03));
+}
+.aria-message{
+    background:rgba(79,209,197,.05);
+    border:1px solid rgba(79,209,197,.15);
+}
+
+/* Input */
+.nexus-input{ background:var(--surface); border:1px solid rgba(255,255,255,.08); }
+.nexus-input:focus{ border-color:var(--ai); outline:none; }
+
+/* Theater */
+.theater{
+    background:radial-gradient(circle at center, rgba(0,230,118,.03), transparent 70%);
+    border:1px solid rgba(255,255,255,.05);
+}
+
+/* Text Utilities */
+.text-secondary{ color:var(--text-secondary); }
+.text-muted{ color:var(--text-muted); }
+
+/* Scrollbar */
+.hidden-scrollbar::-webkit-scrollbar{ display:none; }
+.hidden-scrollbar{ scrollbar-width:none; }
 </style>
 </head>
 
-<body class="h-screen flex flex-col font-sans overflow-hidden">
+<body class="h-screen flex flex-col overflow-hidden">
 
-<header class="glass-panel border-b border-cyan-900/30 px-6 py-4 flex justify-between items-center z-10">
-
+<header class="header px-6 py-4 flex justify-between items-center z-10">
     <div class="flex items-center gap-3">
-        <i class="fa-solid fa-brain text-cyan-300 text-2xl drop-shadow-[0_0_15px_rgba(34,211,238,.8)]"></i>
+        <i class="fa-solid fa-brain text-[#4FD1C5] text-2xl"></i>
         <h1 class="text-2xl font-bold tracking-wider">
-            NEX<span class="nexus-gradient-text">US</span>
+            NEX<span class="nexus-gradient">US</span>
         </h1>
     </div>
-
-    <div class="text-sm text-cyan-100/70 flex items-center gap-6">
+    <div class="flex items-center gap-6 text-sm text-secondary">
         <span class="flex items-center gap-2">
-            <div class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_12px_rgba(34,211,238,.9)]"></div>
+            <div class="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></div>
             Live Data Sync
         </span>
         <span>Manager: Aditya</span>
     </div>
 </header>
 
-<main class="flex-1 flex overflow-hidden">
+<main class="flex flex-1 overflow-hidden">
 
-    <section class="w-1/2 flex flex-col border-r border-cyan-900/20">
+    <section class="w-1/2 border-r border-white/5 flex flex-col">
 
-        <div class="p-6 overflow-y-auto h-1/2 border-b border-cyan-900/20 hidden-scrollbar">
-
-            <h2 class="text-xs font-semibold text-cyan-300/70 uppercase tracking-[0.2em] mb-5">
+        <div class="h-1/2 overflow-y-auto hidden-scrollbar p-6">
+            <h2 class="text-xs uppercase tracking-[0.25em] text-muted mb-5">
                 Proactive Opportunities
             </h2>
-
-            <div class="flex flex-col gap-5">
-
+            
+            <div class="space-y-5">
                 {% for opp in opportunities %}
-                <div class="glass-panel card-hover p-5 rounded-[30px] cursor-pointer group">
+                
+                {% set card_class = "opportunity-ai" %}
+                {% set pill_class = "ai-pill" %}
+                {% set pill_icon = "🤖" %}
+                {% set pill_text = "ARIA Recommendation" %}
+                
+                {% if "VIP" in opp.title or "lapse" in opp.title %}
+                    {% set card_class = "opportunity-vip" %}
+                    {% set pill_class = "vip-pill" %}
+                    {% set pill_icon = "👑" %}
+                    {% set pill_text = "VIP Opportunity" %}
+                {% elif "Hunters" in opp.title or "Upsell" in opp.title %}
+                    {% set card_class = "opportunity-revenue" %}
+                    {% set pill_class = "revenue-pill" %}
+                    {% set pill_icon = "📈" %}
+                    {% set pill_text = "Revenue Opportunity" %}
+                {% elif "Churn" in opp.title or "Risk" in opp.title %}
+                    {% set card_class = "opportunity-risk" %}
+                    {% set pill_class = "warning-pill" %}
+                    {% set pill_icon = "⚠" %}
+                    {% set pill_text = "Churn Alert" %}
+                {% endif %}
 
-                    <div class="flex justify-between items-start mb-3">
-                        <h3 class="font-bold text-lg text-white group-hover:text-cyan-300 transition">
-                            {{ opp.title }}
-                        </h3>
-
-                        <button class="bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 font-bold px-4 py-2 rounded-full shadow-lg shadow-cyan-500/30 hover:scale-105 hover:shadow-cyan-400/50 transition duration-300">
+                <div class="card {{ card_class }} p-5 cursor-pointer">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <div class="{{ pill_class }} text-xs px-3 py-1 rounded-full w-fit mb-3 font-semibold">
+                                {{ pill_icon }} {{ pill_text }}
+                            </div>
+                            <h3 class="text-lg font-semibold text-white">
+                                {{ opp.title }}
+                            </h3>
+                        </div>
+                        <button onclick="triggerAria('{{ opp.title }}')" class="action-btn px-5 py-2 rounded-full text-sm">
                             Act Now
                         </button>
                     </div>
 
-                    <p class="text-sm text-cyan-100/60 mb-4">
+                    <p class="text-secondary text-sm mb-4 leading-relaxed">
                         {{ opp.description }}
                     </p>
 
-                    <div class="flex justify-between items-center text-xs font-medium bg-slate-950/40 p-3 rounded-full">
-                        <span class="text-cyan-50/80">
-                            Audience: {{ opp.customer_count }} Customers
+                    <div class="flex justify-between items-center text-sm font-medium border-t border-white/5 pt-4 mt-2">
+                        <span class="text-secondary">
+                            Audience: <span class="text-white">{{ opp.customer_count }}</span>
                         </span>
-
-                        <span class="revenue-pill text-cyan-300 font-bold px-3 py-1 rounded-full">
+                        <span class="revenue-value text-base">
                             ₹{{ "{:,.2f}".format(opp.potential_revenue) }}
                         </span>
                     </div>
-
                 </div>
                 {% endfor %}
-                </div>
+            </div>
         </div>
 
-        <div class="p-6 h-1/2 flex flex-col bg-black/10">
-
-            <h2 class="text-xs font-semibold text-cyan-300/70 uppercase tracking-[0.2em] mb-5">
+        <div class="h-1/2 aria-section p-6 flex flex-col relative border-t border-[#4FD1C5]/10">
+            <h2 class="text-xs uppercase tracking-[0.25em] text-[#4FD1C5] mb-5">
                 ARIA Agent Copilot
             </h2>
 
-            <div id="chat-window" class="flex-1 overflow-y-auto mb-4 space-y-4 pr-2">
-
-                <div class="bg-slate-900/70 border border-cyan-900/20 w-fit max-w-[85%] p-4 rounded-[24px] rounded-tl-md text-sm text-cyan-50/80">
-                    Hello. I am ARIA. <br><br>
-                    I've analyzed your customer database and surfaced the opportunities above. Click "Act Now" on a recommendation or type a custom command below to launch a campaign.
+            <div class="flex-1 overflow-y-auto space-y-4 hidden-scrollbar pr-2" id="chat-window">
+                <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%]">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-robot text-[#4FD1C5]"></i>
+                        <span class="font-bold text-[#4FD1C5] tracking-wide">ARIA</span>
+                    </div>
+                    <p class="text-secondary text-sm leading-relaxed">
+                        I've analyzed customer behavior and surfaced opportunities with the highest projected ROI above. Click an opportunity card or instruct me to build a campaign strategy below.
+                    </p>
                 </div>
-
             </div>
 
-            <div class="mt-auto relative">
-
+            <div class="relative mt-4">
                 <input
                     type="text"
                     id="ai-prompt"
-                    class="w-full bg-slate-900/80 border border-cyan-900/40 rounded-2xl py-4 pl-5 pr-14 text-sm text-white placeholder-cyan-100/40 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition"
-                    placeholder="e.g., Target Premium Loyalists in Delhi with a 15% discount...">
-
-                <button class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 hover:scale-105 transition">
-                    <i class="fa-solid fa-paper-plane"></i>
+                    placeholder="e.g. Target Lapsed VIPs with a win-back offer..."
+                    class="nexus-input w-full rounded-2xl py-4 pl-5 pr-14 text-white text-sm"
+                >
+                <button class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-80 transition" style="background:#4FD1C5;color:#04110F;">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
                 </button>
-
             </div>
-
         </div>
 
     </section>
 
-    <section class="w-1/2 p-6 flex flex-col theater-bg bg-[#051216]">
-
-        <h2 class="text-xs font-semibold text-cyan-300/70 uppercase tracking-[0.2em] mb-6">
+    <section class="w-1/2 p-6 flex flex-col bg-[#050505]">
+        <h2 class="text-xs uppercase tracking-[0.25em] text-muted mb-6">
             Live Campaign Theater
         </h2>
 
-        <div class="flex-1 flex items-center justify-center border-2 border-dashed border-cyan-900/40 rounded-[36px] cyber-glow">
-
-            <div class="text-center text-cyan-100/40">
-
-                <i class="fa-solid fa-satellite-dish text-5xl mb-4"></i>
-
-                <h3 class="text-lg mb-2">
-                    Awaiting Campaign Execution
+        <div id="theater-screen" class="theater flex-1 rounded-[32px] flex items-center justify-center relative overflow-hidden">
+            <div id="theater-empty-state" class="text-center relative z-10">
+                <i class="fa-solid fa-satellite-dish text-5xl text-muted mb-6 opacity-30"></i>
+                <h3 class="text-lg font-semibold mb-2 text-white/80">
+                    Awaiting Pipeline Activation
                 </h3>
-
-                <p class="text-sm">
-                    AI-generated campaign previews will appear here.
+                <p class="text-secondary text-sm max-w-xs mx-auto leading-relaxed">
+                    Agentic executions, message deployments, and live delivery states will render here.
                 </p>
-
             </div>
-
+            
+            <div id="live-events-container" class="absolute inset-0 p-8 flex flex-col gap-3 hidden overflow-y-auto hidden-scrollbar">
         </div>
-
     </section>
 
 </main>
 
+<script>
+    const theaterEmptyState = document.getElementById('theater-empty-state');
+    const liveEventsContainer = document.getElementById('live-events-container');
+    let lastEventCount = 0;
+
+    async function pollLiveTheater() {
+        try {
+            const response = await fetch('/api/theater/stream');
+            const data = await response.json();
+            
+            if (data.events.length > 0) {
+                // Hide empty state and show the stream container
+                theaterEmptyState.classList.add('hidden');
+                liveEventsContainer.classList.remove('hidden');
+                
+                // If there are new events, render them
+                if (data.events.length > lastEventCount) {
+                    liveEventsContainer.innerHTML = ''; // Clear old to prevent duplicates
+                    
+                    // Render only the latest 8 events to keep the UI clean
+                    const latestEvents = data.events;                    
+                    latestEvents.forEach(event => {
+                        let statusColor = 'text-white border-white/20 bg-white/5';
+                        let icon = 'fa-paper-plane';
+                        
+                        if (event.status === 'Sent') { statusColor = 'text-blue-400 border-blue-400/30 bg-blue-400/10'; }
+                        if (event.status === 'Delivered') { statusColor = 'text-purple-400 border-purple-400/30 bg-purple-400/10'; icon = 'fa-check-double'; }
+                        if (event.status === 'Opened') { statusColor = 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'; icon = 'fa-envelope-open'; }
+                        if (event.status === 'Clicked') { statusColor = 'text-[#4FD1C5] border-[#4FD1C5]/30 bg-[#4FD1C5]/10'; icon = 'fa-hand-pointer'; }
+                        if (event.status === 'Purchased') { statusColor = 'text-[#00E676] border-[#00E676]/50 bg-[#00E676]/20 font-bold'; icon = 'fa-cart-shopping'; }
+
+                    const eventHtml = `
+                            <div class="flex items-center gap-4 py-2 px-4 rounded-xl border ${statusColor} animate-fade-in-up">
+                                <i class="fa-solid ${icon} w-5"></i>
+                                <span class="font-mono text-sm opacity-50">MSG_${event.message_id}</span>
+                                <span class="text-sm tracking-wide ml-auto">${event.status}</span>
+                            </div>
+                        `;
+                        liveEventsContainer.insertAdjacentHTML('beforeend', eventHtml);
+                    });
+                    
+                    lastEventCount = data.events.length;  
+                }
+            }
+            liveEventsContainer.scrollTop = liveEventsContainer.scrollHeight;
+        } catch (error) {
+            console.error("Theater Polling Error:", error);
+        }
+    }
+
+    // Add a simple fade-in animation
+    const style = document.createElement('style');
+    style.innerHTML = `@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }`;
+    document.head.appendChild(style);
+
+    // Poll the server every 800 milliseconds
+    setInterval(pollLiveTheater, 800);
+
+    function triggerAria(opportunityTitle) {
+    // 1. Grab the chat box
+    const chatInput = document.getElementById('ai-prompt');
+    
+    // 2. Auto-fill the prompt with a command to ARIA
+    chatInput.value = `Draft a highly converting WhatsApp campaign for the "${opportunityTitle}" opportunity, and launch it.`;
+    
+    // 3. Automatically click the send button for the user!
+    chatInput.nextElementSibling.click();
+}
+</script>
+
+
+</main>
+<script>
+    const chatInput = document.getElementById('ai-prompt');
+    const sendBtn = chatInput.nextElementSibling;
+    const chatWindow = document.getElementById('chat-window');
+
+    async function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        // 1. Append User Message to UI
+        const userHtml = `
+            <div class="flex justify-end mb-4">
+                <div class="bg-nexusSurface border border-white/10 max-w-[85%] p-4 rounded-[24px] rounded-tr-sm text-sm text-white">
+                    ${text}
+                </div>
+            </div>`;
+        chatWindow.insertAdjacentHTML('beforeend', userHtml);
+        chatInput.value = '';
+        
+        // Scroll to bottom
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // 2. Add "Typing..." Indicator
+        const typingId = 'typing-' + Date.now();
+        const typingHtml = `
+            <div id="${typingId}" class="aria-message rounded-[24px] rounded-tl-sm p-4 max-w-[85%] mb-4 opacity-70">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-robot text-nexusAI animate-pulse"></i>
+                    <span class="text-sm text-nexusAI">ARIA is analyzing...</span>
+                </div>
+            </div>`;
+        chatWindow.insertAdjacentHTML('beforeend', typingHtml);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // 3. Send to FastAPI Backend
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await response.json();
+
+            // 4. Remove Typing Indicator & Append ARIA Response
+            document.getElementById(typingId).remove();
+            
+            // Format ARIA's response to handle line breaks natively
+            const formattedReply = data.reply.replace(/\n/g, '<br>');
+            
+            const ariaHtml = `
+                <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%] mb-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-robot text-nexusAI"></i>
+                        <span class="font-bold text-nexusAI tracking-wide">ARIA</span>
+                    </div>
+                    <p class="text-textSecondary text-sm leading-relaxed">${formattedReply}</p>
+                </div>`;
+            chatWindow.insertAdjacentHTML('beforeend', ariaHtml);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        } catch (error) {
+            document.getElementById(typingId).remove();
+            console.error("Connection lost:", error);
+        }
+    }
+
+    // Trigger on Button Click
+    sendBtn.addEventListener('click', sendMessage);
+
+    // Trigger on Enter Key
+    chatInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
 </body>
 </html>
