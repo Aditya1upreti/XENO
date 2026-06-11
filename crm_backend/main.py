@@ -1,3 +1,7 @@
+from sqlmodel import Session, select
+from datetime import datetime
+from database import engine
+from models import Customer, MessageLog, Campaign # Make sure MessageLog is here!
 import os
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import HTMLResponse
@@ -71,27 +75,26 @@ class WebhookPayload(BaseModel):
 # so the frontend can read them dynamically.
 live_theater_stream = []
 
+
+
 @app.post("/api/webhook/delivery")
-async def receive_delivery_webhook(payload: WebhookPayload):
-    """
-    Receives real-time delivery updates (Sent, Delivered, Opened, Clicked) 
-    from the external Channel Provider (Port 8001).
-    """
-    update = {
-        "message_id": payload.message_id,
-        "status": payload.status,
-        "timestamp": "Just now" # In production, use real datetime
-    }
+async def receive_delivery_webhook(payload: dict):
+    # 1. Keep this for your live UI!
+    live_theater_stream.append(payload)
     
-    # Add to our live stream list (keeping only the last 50 events to prevent memory bloat)
-    live_theater_stream.append(update)
-    if len(live_theater_stream) > 50:
-        live_theater_stream.pop(0)
+    # 2. Add this to permanently save it to the database
+    with Session(engine) as session:
+        new_log = MessageLog(
+            message_id=str(payload.get("message_id")),
+            campaign_id=payload.get("campaign_id", 0),
+            customer_id=payload.get("customer_id", 0),
+            status=payload.get("status"),
+            updated_at=datetime.utcnow()
+        )
+        session.add(new_log)
+        session.commit()
         
-    print(f"✅ Webhook Received: Msg {payload.message_id} -> {payload.status}")
-    
-    # In a full production app, we would save this to the `MessageLog` SQLite table here.
-    return {"status": "received"}
+    return {"status": "Webhook received and logged to database"}
 
 @app.get("/api/theater/stream")
 def get_theater_stream():
