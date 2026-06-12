@@ -1,3 +1,5 @@
+# channel_service/main.py
+
 import os
 import asyncio
 import random
@@ -7,11 +9,14 @@ from pydantic import BaseModel
 from typing import List
 
 app = FastAPI(title="NEXUS External Channel Provider")
+
 @app.get("/")
 def read_root():
     return {"status": "NEXUS Channel Service Provider is Online and listening for dispatches."}
+
 # This is where we will send updates back to your main CRM
 CRM_WEBHOOK_URL = os.getenv("CRM_WEBHOOK_URL", "http://localhost:8000/api/webhook/delivery")
+
 class MessagePayload(BaseModel):
     message_id: int
     customer_id: int
@@ -22,7 +27,7 @@ class CampaignPayload(BaseModel):
     messages: List[MessagePayload]
 
 async def process_message_lifecycle(campaign_id: int, message: MessagePayload):
-    """Simulates realistic network delays and user interactions."""
+    """Simulates realistic network delays and user interactions with retry logic."""
     async with httpx.AsyncClient() as client:
         
         async def push_status(status: str):
@@ -41,7 +46,23 @@ async def process_message_lifecycle(campaign_id: int, message: MessagePayload):
         await asyncio.sleep(random.uniform(0.5, 1.5))
         await push_status("Sent")
 
-        # 2. Delivered to Device
+        # 2. Delivered to Device (with simulated 20% failure probability)
+        success = random.random() >= 0.20
+        if not success:
+            print(f"Msg {message.message_id} failed delivery. Queueing for retry...")
+            # Wait 10 seconds before retrying once
+            await asyncio.sleep(10.0)
+            
+            # Retry attempt with a fresh success check
+            retry_success = random.random() >= 0.20
+            if not retry_success:
+                print(f"Msg {message.message_id} failed retry permanently.")
+                await push_status("PermanentlyFailed")
+                return
+            else:
+                print(f"Msg {message.message_id} retry succeeded.")
+
+        # Proceed with normal delivery lifecycle upon success
         await asyncio.sleep(random.uniform(1.0, 3.0))
         await push_status("Delivered")
 

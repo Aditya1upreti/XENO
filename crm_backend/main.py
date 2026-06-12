@@ -1,7 +1,6 @@
-from sqlmodel import Session, select
+# crm_backend/main.py
+
 from datetime import datetime
-from database import engine
-from models import Customer, MessageLog, Campaign # Make sure MessageLog is here!
 import os
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import HTMLResponse
@@ -9,15 +8,16 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, select
 from typing import List
+from pydantic import BaseModel
 
 from crm_backend.database import engine, get_session, create_db_and_tables
 from crm_backend.models import Customer, Order, Campaign, MessageLog, Opportunity
-from pydantic import BaseModel
 from crm_backend.agent import ask_aria
+
 app = FastAPI(title="NEXUS AI-Native CRM Brain")
 
 # PRODUCTION FIX: Establish directory paths relative to this file's location
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.getenv("BASE_DIR", os.path.dirname(os.path.abspath(__file__)))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 @app.on_event("startup")
@@ -49,8 +49,8 @@ def get_customers(session: Session = Depends(get_session), limit: int = 10):
 
 @app.get("/api/campaigns", response_model=List[Campaign])
 def get_campaigns(session: Session = Depends(get_session)):
-    # PRODUCTION FIX: Corrected clean SQLModel statement execution syntax
     return session.exec(select(Campaign)).all()
+
 # Pydantic schema for the incoming chat request
 class ChatRequest(BaseModel):
     message: str
@@ -76,28 +76,98 @@ class WebhookPayload(BaseModel):
 live_theater_stream = []
 
 
-
 @app.post("/api/webhook/delivery")
 async def receive_delivery_webhook(payload: dict):
-    # 1. Keep this for your live UI!
-    live_theater_stream.append(payload)
+    message_id_str = str(payload.get("message_id"))
+    campaign_id = payload.get("campaign_id", 0)
+    status = payload.get("status")
     
-    # 2. Add this to permanently save it to the database
+    avg_order_value = 0.0
+    
     with Session(engine) as session:
-        new_log = MessageLog(
-            message_id=str(payload.get("message_id")),
-            campaign_id=payload.get("campaign_id", 0),
-            customer_id=payload.get("customer_id", 0),
-            status=payload.get("status"),
-            updated_at=datetime.utcnow()
-        )
-        session.add(new_log)
-        session.commit()
+        # Update or create the MessageLog record
+        statement = select(MessageLog).where(MessageLog.message_id == message_id_str)
+        log = session.exec(statement).first()
         
+        if log:
+            log.status = status
+            log.updated_at = datetime.utcnow()
+            session.add(log)
+        else:
+            log = MessageLog(
+                message_id=message_id_str,
+                campaign_id=campaign_id,
+                customer_id=0,
+                channel="WhatsApp",
+                message_text="",
+                status=status,
+                updated_at=datetime.utcnow()
+            )
+            session.add(log)
+            
+        session.commit()
+        session.refresh(log)
+        
+        # Task 4 Check: Set customer churn_score to 100 on PermanentlyFailed status
+        if status == "PermanentlyFailed":
+            if log.customer_id and log.customer_id != 0:
+                customer_statement = select(Customer).where(Customer.id == log.customer_id)
+                customer = session.exec(customer_statement).first()
+                if customer:
+                    customer.churn_score = 100
+                    session.add(customer)
+                    session.commit()
+        
+        # Update Campaign metrics
+        campaign_statement = select(Campaign).where(Campaign.id == campaign_id)
+        campaign = session.exec(campaign_statement).first()
+        
+        if campaign:
+            if status == "Delivered":
+                campaign.delivered_count += 1
+            elif status == "Opened":
+                campaign.opened_count += 1
+            elif status == "Clicked":
+                campaign.clicked_count += 1
+            elif status == "Purchased":
+                campaign.purchased_count += 1
+                
+                # Adds customer average order value to total_revenue_attributed
+                if log.customer_id and log.customer_id != 0:
+                    order_stmt = select(Order).where(Order.customer_id == log.customer_id)
+                    orders = session.exec(order_stmt).all()
+                    if orders:
+                        avg_order_value = sum(o.amount for o in orders) / len(orders)
+                    else:
+                        customer_stmt = select(Customer).where(Customer.id == log.customer_id)
+                        customer = session.exec(customer_stmt).first()
+                        if customer and customer.lifetime_spend > 0:
+                            avg_order_value = customer.lifetime_spend / 5.0
+                        else:
+                            avg_order_value = 1500.0
+                else:
+                    avg_order_value = 1500.0
+                
+                campaign.total_revenue_attributed += round(avg_order_value, 2)
+            
+            # Check if campaign status should be set to Completed when all messages processed
+            # Check if campaign status should be set to Completed when all messages processed
+            now_naive = datetime.utcnow()
+            created_naive = campaign.created_at.replace(tzinfo=None)
+            time_elapsed = (now_naive - created_naive).total_seconds()
+            if time_elapsed > 20:
+                campaign.status = "Completed"
+                
+            session.add(campaign)
+            session.commit()
+
+    # Append revenue attribute dynamically to streaming logs for real-time frontend calculations
+    payload["revenue"] = round(avg_order_value, 2) if status == "Purchased" else 0.0
+    live_theater_stream.append(payload)
+            
     return {"status": "Webhook received and logged to database"}
 
 @app.get("/api/theater/stream")
 def get_theater_stream():
     """Endpoint for the frontend UI to poll for new live events."""
     return {"events": live_theater_stream}
-

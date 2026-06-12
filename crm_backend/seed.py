@@ -1,9 +1,8 @@
 import random
 from datetime import datetime, timedelta, timezone
 from sqlmodel import Session, select
-from models import Customer, Order, Opportunity
-from database import engine, create_db_and_tables
-
+from crm_backend.models import Customer, Order, Opportunity
+from crm_backend.database import engine, create_db_and_tables
 FIRST_NAMES = ["Aarav", "Vihaan", "Aditya", "Diya", "Ananya", "Sneha", "Karan", "Priya", "Rahul", "Neha", "Rohan", "Shruti", "Kabir", "Meera", "Arjun", "Zara"]
 LAST_NAMES = ["Sharma", "Singh", "Patel", "Gupta", "Verma", "Reddy", "Kumar", "Deshmukh", "Joshi", "Kapoor", "Iyer", "Chopra"]
 CITIES = ["Delhi", "Mumbai", "Bangalore", "Hyderabad", "Chennai", "Pune", "Jaipur", "Ahmedabad", "Kolkata"]

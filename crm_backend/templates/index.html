@@ -1,3 +1,5 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,7 +134,11 @@ body{
             NEX<span class="nexus-gradient">US</span>
         </h1>
     </div>
-    <div class="flex items-center gap-6 text-sm text-secondary">
+    <div class="flex items-center gap-4 text-sm text-secondary">
+        <!-- Glowing Auto-Pilot Button -->
+        <button onclick="triggerAutoPilot()" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 border border-[#4FD1C5]/30 animate-pulse" style="background: rgba(79, 209, 197, 0.15); color: #4FD1C5; box-shadow: 0 0 12px rgba(79, 209, 197, 0.2);">
+            <i class="fa-solid fa-bolt"></i> Auto-Pilot
+        </button>
         <span class="flex items-center gap-2">
             <div class="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></div>
             Live Data Sync
@@ -240,9 +246,20 @@ body{
     </section>
 
     <section class="w-1/2 p-6 flex flex-col bg-[#050505]">
-        <h2 class="text-xs uppercase tracking-[0.25em] text-muted mb-6">
-            Live Campaign Theater
-        </h2>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xs uppercase tracking-[0.25em] text-muted">
+                Live Campaign Theater
+            </h2>
+            
+            <!-- Live Revenue Display Panel -->
+            <div class="px-5 py-2 rounded-2xl bg-[#00E676]/10 border border-[#00E676]/20 flex items-center gap-3">
+                <i class="fa-solid fa-coins text-[#00E676] text-lg"></i>
+                <div>
+                    <span class="text-[10px] text-muted uppercase tracking-wider block leading-none">Revenue Influenced</span>
+                    <span id="live-revenue-counter" class="text-xl font-extrabold" style="color: #00E676;">₹0.00</span>
+                </div>
+            </div>
+        </div>
 
         <div id="theater-screen" class="theater flex-1 rounded-[32px] flex items-center justify-center relative overflow-hidden">
             <div id="theater-empty-state" class="text-center relative z-10">
@@ -256,6 +273,7 @@ body{
             </div>
             
             <div id="live-events-container" class="absolute inset-0 p-8 flex flex-col gap-3 hidden overflow-y-auto hidden-scrollbar">
+            </div>
         </div>
     </section>
 
@@ -264,6 +282,7 @@ body{
 <script>
     const theaterEmptyState = document.getElementById('theater-empty-state');
     const liveEventsContainer = document.getElementById('live-events-container');
+    const liveRevenueCounter = document.getElementById('live-revenue-counter');
     let lastEventCount = 0;
 
     async function pollLiveTheater() {
@@ -276,11 +295,22 @@ body{
                 theaterEmptyState.classList.add('hidden');
                 liveEventsContainer.classList.remove('hidden');
                 
+                // Aggregate real-time influenced revenue dynamically
+                let accumulatedRevenue = 0;
+                data.events.forEach(event => {
+                    if (event.status === 'Purchased' && event.revenue) {
+                        accumulatedRevenue += parseFloat(event.revenue);
+                    }
+                });
+                
+                // Format and update revenue counter
+                liveRevenueCounter.innerText = `₹${accumulatedRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                
                 // If there are new events, render them
                 if (data.events.length > lastEventCount) {
                     liveEventsContainer.innerHTML = ''; // Clear old to prevent duplicates
                     
-                    // Render only the latest 8 events to keep the UI clean
+                    // Render the latest events to keep the UI clean
                     const latestEvents = data.events;                    
                     latestEvents.forEach(event => {
                         let statusColor = 'text-white border-white/20 bg-white/5';
@@ -291,8 +321,9 @@ body{
                         if (event.status === 'Opened') { statusColor = 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'; icon = 'fa-envelope-open'; }
                         if (event.status === 'Clicked') { statusColor = 'text-[#4FD1C5] border-[#4FD1C5]/30 bg-[#4FD1C5]/10'; icon = 'fa-hand-pointer'; }
                         if (event.status === 'Purchased') { statusColor = 'text-[#00E676] border-[#00E676]/50 bg-[#00E676]/20 font-bold'; icon = 'fa-cart-shopping'; }
+                        if (event.status === 'PermanentlyFailed') { statusColor = 'text-red-500 border-red-500/30 bg-red-500/10 font-bold'; icon = 'fa-circle-xmark'; }
 
-                    const eventHtml = `
+                        const eventHtml = `
                             <div class="flex items-center gap-4 py-2 px-4 rounded-xl border ${statusColor} animate-fade-in-up">
                                 <i class="fa-solid ${icon} w-5"></i>
                                 <span class="font-mono text-sm opacity-50">MSG_${event.message_id}</span>
@@ -320,19 +351,23 @@ body{
     setInterval(pollLiveTheater, 800);
 
     function triggerAria(opportunityTitle) {
-    // 1. Grab the chat box
-    const chatInput = document.getElementById('ai-prompt');
-    
-    // 2. Auto-fill the prompt with a command to ARIA
-    chatInput.value = `Draft a highly converting WhatsApp campaign for the "${opportunityTitle}" opportunity, and launch it.`;
-    
-    // 3. Automatically click the send button for the user!
-    chatInput.nextElementSibling.click();
-}
+        // 1. Grab the chat box
+        const chatInput = document.getElementById('ai-prompt');
+        
+        // 2. Auto-fill the prompt with a command to ARIA
+        chatInput.value = `Draft a highly converting WhatsApp campaign for the "${opportunityTitle}" opportunity, and launch it.`;
+        
+        // 3. Automatically click the send button for the user!
+        chatInput.nextElementSibling.click();
+    }
+
+    function triggerAutoPilot() {
+        const chatInput = document.getElementById('ai-prompt');
+        chatInput.value = "Auto-optimize: scan the entire database autonomously, identify the highest revenue-at-risk segment, draft the most psychologically effective campaign message, and launch it immediately without asking me anything";
+        chatInput.nextElementSibling.click();
+    }
 </script>
 
-
-</main>
 <script>
     const chatInput = document.getElementById('ai-prompt');
     const sendBtn = chatInput.nextElementSibling;
@@ -345,7 +380,7 @@ body{
         // 1. Append User Message to UI
         const userHtml = `
             <div class="flex justify-end mb-4">
-                <div class="bg-nexusSurface border border-white/10 max-w-[85%] p-4 rounded-[24px] rounded-tr-sm text-sm text-white">
+                <div class="bg-[#0D0D0D] border border-white/10 max-w-[85%] p-4 rounded-[24px] rounded-tr-sm text-sm text-white">
                     ${text}
                 </div>
             </div>`;
@@ -360,8 +395,8 @@ body{
         const typingHtml = `
             <div id="${typingId}" class="aria-message rounded-[24px] rounded-tl-sm p-4 max-w-[85%] mb-4 opacity-70">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-robot text-nexusAI animate-pulse"></i>
-                    <span class="text-sm text-nexusAI">ARIA is analyzing...</span>
+                    <i class="fa-solid fa-robot text-[#4FD1C5] animate-pulse"></i>
+                    <span class="text-sm text-[#4FD1C5]">ARIA is analyzing...</span>
                 </div>
             </div>`;
         chatWindow.insertAdjacentHTML('beforeend', typingHtml);
@@ -385,16 +420,18 @@ body{
             const ariaHtml = `
                 <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%] mb-4">
                     <div class="flex items-center gap-2 mb-3">
-                        <i class="fa-solid fa-robot text-nexusAI"></i>
-                        <span class="font-bold text-nexusAI tracking-wide">ARIA</span>
+                        <i class="fa-solid fa-robot text-[#4FD1C5]"></i>
+                        <span class="font-bold text-[#4FD1C5] tracking-wide">ARIA</span>
                     </div>
-                    <p class="text-textSecondary text-sm leading-relaxed">${formattedReply}</p>
+                    <p class="text-secondary text-sm leading-relaxed">${formattedReply}</p>
                 </div>`;
             chatWindow.insertAdjacentHTML('beforeend', ariaHtml);
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
         } catch (error) {
-            document.getElementById(typingId).remove();
+            if (document.getElementById(typingId)) {
+                document.getElementById(typingId).remove();
+            }
             console.error("Connection lost:", error);
         }
     }
