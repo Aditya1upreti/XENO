@@ -93,7 +93,7 @@ def stage_campaign(target_audience: str, message_copy: str) -> dict:
 
         for c in customers:
             msg_id = random.randint(10000, 99999)
-            mock_messages.append({
+            real_messages.append({
                 "message_id": msg_id,
                 "customer_id": c.id,
                 "contact_info": c.email
@@ -127,7 +127,7 @@ def stage_campaign(target_audience: str, message_copy: str) -> dict:
                 "campaign_id": campaign_id,
                 "target_audience": target_audience,
                 "message_copy": message_copy,
-                "recipients_staged": len(mock_messages)
+                "recipients_staged": len(real_messages)
             }
         else:
             return {"status": f"FAILED - Channel Service returned {response.status_code}"}
