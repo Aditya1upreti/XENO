@@ -245,8 +245,8 @@ body{
 
     </section>
 
-    <section class="w-1/2 p-6 flex flex-col bg-[#050505] overflow-y-auto hidden-scrollbar">
-        <div class="flex flex-col gap-4 mb-6">
+    <section class="w-1/2 p-6 flex flex-col bg-[#050505] overflow-y-auto hidden-scrollbar gap-4">
+        <div class="flex flex-col gap-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-xs uppercase tracking-[0.25em] text-muted">
                     Live Campaign Theater
@@ -277,6 +277,16 @@ body{
                         <span id="ctr-b-display" class="text-lg font-bold">0.0% CTR</span>
                     </div>
                     <i class="fa-solid fa-crown text-lg opacity-40"></i>
+                </div>
+            </div>
+
+            <!-- Live Channel Breakdown Summary Panel -->
+            <div class="px-5 py-3 rounded-2xl bg-[#0D0D0D] border border-white/5 flex justify-between items-center text-xs text-muted">
+                <span class="font-medium">Active Channels:</span>
+                <div class="flex gap-4">
+                    <span class="flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-[#25D366]"></i> WhatsApp: <span id="count-whatsapp" class="text-white font-bold">0</span></span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-message text-[#3B82F6]"></i> SMS: <span id="count-sms" class="text-white font-bold">0</span></span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-envelope text-[#F97316]"></i> Email: <span id="count-email" class="text-white font-bold">0</span></span>
                 </div>
             </div>
         </div>
@@ -315,16 +325,25 @@ body{
                 theaterEmptyState.classList.add('hidden');
                 liveEventsContainer.classList.remove('hidden');
                 
-                // Aggregate real-time influenced revenue dynamically
+                // Aggregate real-time metrics
                 let accumulatedRevenue = 0;
                 let deliveredA = 0, clickedA = 0;
                 let deliveredB = 0, clickedB = 0;
+                let countWhatsApp = 0, countSMS = 0, countEmail = 0;
 
                 data.events.forEach(event => {
                     const variant = event.variant || 'A';
+                    const channel = event.channel || 'WhatsApp';
                     
                     if (event.status === 'Purchased' && event.revenue) {
                         accumulatedRevenue += parseFloat(event.revenue);
+                    }
+
+                    // Count routed dispatch channels
+                    if (event.status === 'Sent') {
+                        if (channel === 'WhatsApp') countWhatsApp++;
+                        else if (channel === 'SMS') countSMS++;
+                        else if (channel === 'Email') countEmail++;
                     }
 
                     // A/B metric mapping rules
@@ -338,10 +357,13 @@ body{
                     }
                 });
                 
-                // Format and update revenue counter
+                // Update UI metric counters
                 liveRevenueCounter.innerText = `₹${accumulatedRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 
-                // Process A/B split results live
+                document.getElementById('count-whatsapp').innerText = countWhatsApp;
+                document.getElementById('count-sms').innerText = countSMS;
+                document.getElementById('count-email').innerText = countEmail;
+
                 const ctrA = deliveredA > 0 ? ((clickedA / deliveredA) * 100).toFixed(1) : "0.0";
                 const ctrB = deliveredB > 0 ? ((clickedB / deliveredB) * 100).toFixed(1) : "0.0";
                 document.getElementById('ctr-a-display').innerText = `${ctrA}% CTR`;
@@ -363,6 +385,11 @@ body{
                         if (event.status === 'Purchased') { statusColor = 'text-[#00E676] border-[#00E676]/50 bg-[#00E676]/20 font-bold'; icon = 'fa-cart-shopping'; }
                         if (event.status === 'PermanentlyFailed') { statusColor = 'text-red-500 border-red-500/30 bg-red-500/10 font-bold'; icon = 'fa-circle-xmark'; }
 
+                        // Channel icon mapping
+                        let channelIcon = 'fa-brands fa-whatsapp text-[#25D366]';
+                        if (event.channel === 'SMS') { channelIcon = 'fa-solid fa-message text-[#3B82F6]'; }
+                        else if (event.channel === 'Email') { channelIcon = 'fa-solid fa-envelope text-[#F97316]'; }
+
                         // Distinct variant borders: Blue for Variant A, Purple for Variant B
                         const variant = event.variant || 'A';
                         const variantBorder = variant === 'A' ? 'border: 2px solid #3B82F6 !important;' : 'border: 2px solid #A855F7 !important;';
@@ -370,6 +397,7 @@ body{
                         const eventHtml = `
                             <div class="flex items-center gap-4 py-2 px-4 rounded-xl border ${statusColor} animate-fade-in-up" style="${variantBorder}">
                                 <i class="fa-solid ${icon} w-5"></i>
+                                <i class="${channelIcon} text-base"></i>
                                 <span class="font-mono text-sm opacity-50">MSG_${event.message_id} (${variant})</span>
                                 <span class="text-sm tracking-wide ml-auto">${event.status}</span>
                             </div>

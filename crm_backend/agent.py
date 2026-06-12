@@ -53,9 +53,28 @@ def segment_audience(persona: str = None, city: str = None, min_churn_score: int
             "segment_found": f"{persona or 'All'} customers in {city or 'All cities'}"
         }
 
+def route_channel(persona: str) -> str:
+    """
+    Determines the optimal communication channel based on customer persona demographics.
+    
+    Premium Loyalists get Email.
+    Weekend Deal Hunters get SMS.
+    Lapsed VIPs get WhatsApp.
+    Fashionistas get WhatsApp.
+    """
+    if persona == "Premium Loyalist":
+        return "Email"
+    elif persona == "Weekend Deal Hunter":
+        return "SMS"
+    elif persona == "Lapsed VIP":
+        return "WhatsApp"
+    elif persona == "Fashionista":
+        return "WhatsApp"
+    return "WhatsApp"
+
 def stage_campaign(target_audience: str, message_copy: str) -> dict:
     """
-    Stages a marketing campaign for deployment to the Live Theater using A/B testing splitting.
+    Stages a marketing campaign for deployment to the Live Theater using A/B testing and Omni-channel routing.
     """
     target_lower = target_audience.lower()
     if "lapsed vip" in target_lower or "lapsed" in target_lower:
@@ -70,6 +89,7 @@ def stage_campaign(target_audience: str, message_copy: str) -> dict:
         persona = "Lapsed VIP"
 
     real_messages = []
+    channel_name = route_channel(persona)
 
     with Session(engine) as session:
         query = select(Customer).where(Customer.persona == persona)
@@ -105,14 +125,15 @@ def stage_campaign(target_audience: str, message_copy: str) -> dict:
                 "message_id": msg_id,
                 "customer_id": c.id,
                 "contact_info": c.email,
-                "variant": variant_tag
+                "variant": variant_tag,
+                "channel": channel_name
             })
             
             new_log = MessageLog(
                 message_id=str(msg_id),
                 campaign_id=campaign_id,
                 customer_id=c.id,
-                channel="WhatsApp",
+                channel=channel_name,
                 message_text=chosen_text,
                 status="Pending",
                 variant=variant_tag
@@ -145,7 +166,7 @@ def stage_campaign(target_audience: str, message_copy: str) -> dict:
         if response_a.status_code == 200 and response_b.status_code == 200:
             return {
                 "status": "SUCCESS - Both Batches Dispatched",
-                "action": "Tell the user that both A/B test variations (FOMO vs Exclusivity) have been successfully routed to the Live Campaign Theater.",
+                "action": f"Tell the user that both A/B test variations (FOMO vs Exclusivity) have been successfully routed to the Live Campaign Theater via {channel_name}.",
                 "campaign_id": campaign_id,
                 "target_audience": target_audience,
                 "message_copy": message_copy,
@@ -284,7 +305,7 @@ RULES:
 # NEW CONFIGURATION SETUP
 config = types.GenerateContentConfig(
     system_instruction=system_instruction,
-    tools=[segment_audience, stage_campaign, analyze_campaign_performance, autonomous_optimize],
+    tools=[segment_audience, stage_campaign, analyze_campaign_performance, autonomous_optimize, route_channel],
     temperature=0.2
 )
 

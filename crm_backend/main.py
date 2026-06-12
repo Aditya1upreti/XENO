@@ -25,10 +25,48 @@ def on_startup():
     create_db_and_tables()
 
 # ==========================================
+#      OPPORTUNITY REFRESH HELPER (DRY)
+# ==========================================
+def db_refresh_opportunities(session: Session):
+    """Core logic to recalculate and sync proactive Opportunity cards inside SQLite."""
+    # 1. Churn Risk segment (churn_score > 80)
+    risk_stmt = select(Customer).where(Customer.churn_score > 80)
+    risk_customers = session.exec(risk_stmt).all()
+    risk_count = len(risk_customers)
+    risk_revenue = sum(c.revenue_at_risk for c in risk_customers if c.revenue_at_risk)
+    
+    # 2. Weekend Deal Hunter segment count and valuation
+    deal_stmt = select(Customer).where(Customer.persona == "Weekend Deal Hunter")
+    deal_customers = session.exec(deal_stmt).all()
+    deal_count = len(deal_customers)
+    deal_revenue = sum(c.lifetime_spend for c in deal_customers if c.lifetime_spend) * 0.25
+    if deal_revenue == 0:
+        deal_revenue = deal_count * 1200.0
+    
+    # Sync SQLite rows
+    opportunities = session.exec(select(Opportunity)).all()
+    for opp in opportunities:
+        title_lower = opp.title.lower()
+        if "vip" in title_lower or "lapsed" in title_lower or "churn" in title_lower:
+            opp.customer_count = risk_count
+            opp.potential_revenue = round(risk_revenue, 2)
+            session.add(opp)
+        elif "hunter" in title_lower or "deal" in title_lower or "discount" in title_lower:
+            opp.customer_count = deal_count
+            opp.potential_revenue = round(deal_revenue, 2)
+            session.add(opp)
+    session.commit()
+
+# ==========================================
 #          VIEW ROUTER (FRONTEND ENTRY)
 # ==========================================
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request, session: Session = Depends(get_session)):
+    try:
+        db_refresh_opportunities(session)
+    except Exception as e:
+        print(f"Failed to auto-refresh proactive opportunities on load: {e}")
+
     opportunities = session.exec(select(Opportunity)).all()
     return templates.TemplateResponse(
         request=request,
@@ -50,6 +88,12 @@ def get_customers(session: Session = Depends(get_session), limit: int = 10):
 @app.get("/api/campaigns", response_model=List[Campaign])
 def get_campaigns(session: Session = Depends(get_session)):
     return session.exec(select(Campaign)).all()
+
+@app.post("/api/opportunities/refresh")
+def refresh_opportunities(session: Session = Depends(get_session)):
+    """API endpoint to dynamically force-recalculate and write fresh Opportunity cards to SQLite."""
+    db_refresh_opportunities(session)
+    return {"status": "SUCCESS", "message": "Proactive opportunities updated with fresh database states."}
 
 # Pydantic schema for the incoming chat request
 class ChatRequest(BaseModel):
@@ -84,6 +128,7 @@ async def receive_delivery_webhook(payload: dict):
     
     avg_order_value = 0.0
     message_variant = "A"
+    message_channel = "WhatsApp"
     
     with Session(engine) as session:
         # Update or create the MessageLog record
@@ -94,6 +139,7 @@ async def receive_delivery_webhook(payload: dict):
             log.status = status
             log.updated_at = datetime.utcnow()
             message_variant = log.variant or "A"
+            message_channel = log.channel or "WhatsApp"
             session.add(log)
         else:
             log = MessageLog(
@@ -161,9 +207,17 @@ async def receive_delivery_webhook(payload: dict):
             session.add(campaign)
             session.commit()
 
+        # Task 8 Action: Recalculate opportunities automatically when a 'Purchased' status arrives
+        if status == "Purchased":
+            try:
+                db_refresh_opportunities(session)
+            except Exception as e:
+                print(f"Failed to auto-refresh proactive opportunities on webhook purchase: {e}")
+
     # Append metrics dynamically to streaming logs for real-time frontend calculations
     payload["revenue"] = round(avg_order_value, 2) if status == "Purchased" else 0.0
     payload["variant"] = message_variant
+    payload["channel"] = message_channel
     live_theater_stream.append(payload)
             
     return {"status": "Webhook received and logged to database"}
