@@ -21,6 +21,7 @@ class MessagePayload(BaseModel):
     message_id: int
     customer_id: int
     contact_info: str
+    variant: str = "A" # Added variant field for A/B testing dispatches
 
 class CampaignPayload(BaseModel):
     campaign_id: int
@@ -36,7 +37,8 @@ async def process_message_lifecycle(campaign_id: int, message: MessagePayload):
                 await client.post(CRM_WEBHOOK_URL, json={
                     "campaign_id": campaign_id,
                     "message_id": message.message_id,
-                    "status": status
+                    "status": status,
+                    "variant": message.variant
                 })
                 print(f"[{status}] Webhook fired for Msg {message.message_id}")
             except Exception as e:

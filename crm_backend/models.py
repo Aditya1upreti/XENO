@@ -1,3 +1,5 @@
+# crm_backend/models.py
+
 from typing import List, Optional
 from datetime import datetime, timezone
 from sqlmodel import Field, SQLModel, Relationship
@@ -58,15 +60,18 @@ class Campaign(SQLModel, table=True):
 # 4. MESSAGE LOG TABLE
 class MessageLog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    message_id: Optional[str] = Field(default=None)  # ADD THIS LINE
+    message_id: Optional[str] = Field(default=None) # Primary carrier messaging identifier
     campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
     customer_id: Optional[int] = Field(default=None, foreign_key="customer.id")
     channel: str = Field(default="WhatsApp")
     message_text: str
-    status: str = Field(default="Pending")
+    status: str = Field(default="Pending") # Pending -> Sent -> Delivered -> Opened -> Clicked -> Purchased -> Failed
+    variant: Optional[str] = Field(default="A") # Added variant field for A/B testing
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
     campaign: Optional[Campaign] = Relationship(back_populates="messages")
     customer: Optional[Customer] = Relationship(back_populates="messages")
+
 # 5. THE SECRET WEAPON: OPPORTUNITY TABLE
 class Opportunity(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

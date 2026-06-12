@@ -55,8 +55,7 @@ def segment_audience(persona: str = None, city: str = None, min_churn_score: int
 
 def stage_campaign(target_audience: str, message_copy: str) -> dict:
     """
-    Stages a marketing campaign for deployment to the Live Theater.
-    Use this ONLY when the user explicitly agrees to launch a campaign based on the drafted message.
+    Stages a marketing campaign for deployment to the Live Theater using A/B testing splitting.
     """
     target_lower = target_audience.lower()
     if "lapsed vip" in target_lower or "lapsed" in target_lower:
@@ -91,12 +90,22 @@ def stage_campaign(target_audience: str, message_copy: str) -> dict:
         session.refresh(new_campaign)
         campaign_id = new_campaign.id
 
-        for c in customers:
+        # Generate message variants automatically
+        variant_a_copy = f"[⏳ URGENT: Limited Time Offer!] {message_copy}"
+        variant_b_copy = f"[👑 VIP Access Benefit] {message_copy}"
+
+        # Split 50/50
+        half = len(customers) // 2
+        for idx, c in enumerate(customers):
+            variant_tag = "A" if idx < half else "B"
+            chosen_text = variant_a_copy if variant_tag == "A" else variant_b_copy
             msg_id = random.randint(10000, 99999)
+            
             real_messages.append({
                 "message_id": msg_id,
                 "customer_id": c.id,
-                "contact_info": c.email
+                "contact_info": c.email,
+                "variant": variant_tag
             })
             
             new_log = MessageLog(
@@ -104,33 +113,46 @@ def stage_campaign(target_audience: str, message_copy: str) -> dict:
                 campaign_id=campaign_id,
                 customer_id=c.id,
                 channel="WhatsApp",
-                message_text=message_copy,
-                status="Pending"
+                message_text=chosen_text,
+                status="Pending",
+                variant=variant_tag
             )
             session.add(new_log)
             
         session.commit()
 
-    payload = {
+    # Split lists into separate payloads for individual batch dispatches
+    real_messages_a = [m for m in real_messages if m["variant"] == "A"]
+    real_messages_b = [m for m in real_messages if m["variant"] == "B"]
+
+    payload_a = {
         "campaign_id": campaign_id,
-        "messages": real_messages
+        "messages": real_messages_a
+    }
+    
+    payload_b = {
+        "campaign_id": campaign_id,
+        "messages": real_messages_b
     }
 
     try:
         channel_url = os.getenv("CHANNEL_SERVICE_URL", "http://localhost:8001")
-        response = requests.post(f"{channel_url}/api/dispatch", json=payload)   
         
-        if response.status_code == 200:
+        # Dispatch Variant A and Variant B payloads separately
+        response_a = requests.post(f"{channel_url}/api/dispatch", json=payload_a)   
+        response_b = requests.post(f"{channel_url}/api/dispatch", json=payload_b)   
+        
+        if response_a.status_code == 200 and response_b.status_code == 200:
             return {
-                "status": "SUCCESS - Campaign Dispatched",
-                "action": "Tell the user the campaign has been successfully routed to the Live Campaign Theater for execution.",
+                "status": "SUCCESS - Both Batches Dispatched",
+                "action": "Tell the user that both A/B test variations (FOMO vs Exclusivity) have been successfully routed to the Live Campaign Theater.",
                 "campaign_id": campaign_id,
                 "target_audience": target_audience,
                 "message_copy": message_copy,
                 "recipients_staged": len(real_messages)
             }
         else:
-            return {"status": f"FAILED - Channel Service returned {response.status_code}"}
+            return {"status": "FAILED - One or both batches returned a non-200 response from the Channel Provider."}
             
     except requests.exceptions.ConnectionError:
         return {
@@ -140,48 +162,65 @@ def stage_campaign(target_audience: str, message_copy: str) -> dict:
 
 def analyze_campaign_performance(campaign_id: str = None) -> dict:
     """
-    Analyzes the delivery and engagement metrics of a recently launched campaign.
-    CRITICAL RULE: If the user asks for a debrief but does NOT provide a campaign ID, 
-    DO NOT ask them for one. Simply pass None and analyze the most recent campaign.
+    Analyzes the delivery and engagement metrics of recently launched campaigns grouped by A/B test variant.
     """
     with Session(engine) as session:
+        # Resolve campaign reference dynamically
         if campaign_id:
-            stmt = select(Campaign).where(Campaign.id == int(campaign_id))
-            campaign = session.exec(stmt).first()
+            campaign_statement = select(Campaign).where(Campaign.id == int(campaign_id))
         else:
-            stmt = select(Campaign).order_by(Campaign.created_at.desc())
-            campaign = session.exec(stmt).first()
-
-        if not campaign:
-            return {
-                "campaign_id": campaign_id or "None found",
-                "error": "No campaign found in database."
+            campaign_statement = select(Campaign).order_by(Campaign.created_at.desc())
+        
+        campaign = session.exec(campaign_statement).first()
+        
+        if campaign:
+            logs_statement = select(MessageLog).where(MessageLog.campaign_id == campaign.id)
+            logs = session.exec(logs_statement).all()
+            
+            metrics = {
+                "A": {"delivered": 0, "clicked": 0},
+                "B": {"delivered": 0, "clicked": 0}
             }
+            
+            for log in logs:
+                v = log.variant or "A"
+                if v not in metrics:
+                    metrics[v] = {"delivered": 0, "clicked": 0}
+                if log.status in ["Delivered", "Opened", "Clicked", "Purchased"]:
+                    metrics[v]["delivered"] += 1
+                if log.status in ["Clicked", "Purchased"]:
+                    metrics[v]["clicked"] += 1
+                    
+            ctr_a = round((metrics["A"]["clicked"] / max(1, metrics["A"]["delivered"])) * 100, 1)
+            ctr_b = round((metrics["B"]["clicked"] / max(1, metrics["B"]["delivered"])) * 100, 1)
+            
+            winner = "Variant A" if ctr_a > ctr_b else "Variant B" if ctr_b > ctr_a else "Tie"
+            reasoning = f"Variant A (FOMO) achieved {ctr_a}% CTR, while Variant B (Exclusivity) achieved {ctr_b}% CTR."
+            
+            if winner == "Variant A":
+                reasoning += " FOMO and immediate urgency proved significantly more effective at driving engagement."
+            elif winner == "Variant B":
+                reasoning += " Exclusivity and early collection pre-access aligned more effectively with high-value consumer mindsets."
+            else:
+                reasoning += " Both variations achieved parity across all targeted subscriber sets."
 
-        delivered = campaign.delivered_count
-        opened = campaign.opened_count
-        clicked = campaign.clicked_count
-        purchased = campaign.purchased_count
-        targeted = campaign.customers_targeted
-        revenue = round(campaign.total_revenue_attributed, 2)
-
-        ctr = round((clicked / delivered) * 100, 1) if delivered > 0 else 0.0
-        open_rate = round((opened / delivered) * 100, 1) if delivered > 0 else 0.0
-
-        return {
-            "campaign_id": campaign.id,
-            "campaign_name": campaign.name,
-            "status": campaign.status,
-            "funnel_metrics": {
-                "customers_targeted": targeted,
-                "successfully_delivered": delivered,
-                "unique_opens": opened,
-                "link_clicks": clicked,
-                "purchases": purchased
-            },
-            "performance_analysis": f"The campaign achieved a {ctr}% click-through rate and {open_rate}% open rate. Revenue attributed: ₹{revenue:,.2f}.",
-            "action": "Summarize these metrics for the user in a clean executive breakdown. Mention CTR, open rate, and revenue attributed specifically."
-        }
+            return {
+                "campaign_id": campaign.id,
+                "campaign_name": campaign.name,
+                "winner": winner,
+                "funnel_metrics": {
+                    "variant_a": {"delivered": metrics["A"]["delivered"], "clicks": metrics["A"]["clicked"], "ctr": f"{ctr_a}%"},
+                    "variant_b": {"delivered": metrics["B"]["delivered"], "clicks": metrics["B"]["clicked"], "ctr": f"{ctr_b}%"}
+                },
+                "performance_analysis": reasoning,
+                "action": "Present this structural split test CTR analysis clearly in a clean winner format."
+            }
+            
+        else:
+            return {
+                "campaign_id": "None Available",
+                "performance_analysis": "No campaigns are currently logged in the local SQLite database to analyze."
+            }
 
 def autonomous_optimize() -> dict:
     """

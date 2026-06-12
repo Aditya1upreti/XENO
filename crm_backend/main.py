@@ -83,6 +83,7 @@ async def receive_delivery_webhook(payload: dict):
     status = payload.get("status")
     
     avg_order_value = 0.0
+    message_variant = "A"
     
     with Session(engine) as session:
         # Update or create the MessageLog record
@@ -92,6 +93,7 @@ async def receive_delivery_webhook(payload: dict):
         if log:
             log.status = status
             log.updated_at = datetime.utcnow()
+            message_variant = log.variant or "A"
             session.add(log)
         else:
             log = MessageLog(
@@ -101,6 +103,7 @@ async def receive_delivery_webhook(payload: dict):
                 channel="WhatsApp",
                 message_text="",
                 status=status,
+                variant="A",
                 updated_at=datetime.utcnow()
             )
             session.add(log)
@@ -151,18 +154,16 @@ async def receive_delivery_webhook(payload: dict):
                 campaign.total_revenue_attributed += round(avg_order_value, 2)
             
             # Check if campaign status should be set to Completed when all messages processed
-            # Check if campaign status should be set to Completed when all messages processed
-            now_naive = datetime.utcnow()
-            created_naive = campaign.created_at.replace(tzinfo=None)
-            time_elapsed = (now_naive - created_naive).total_seconds()
+            time_elapsed = (datetime.utcnow() - campaign.created_at.replace(tzinfo=None)).total_seconds()
             if time_elapsed > 20:
                 campaign.status = "Completed"
                 
             session.add(campaign)
             session.commit()
 
-    # Append revenue attribute dynamically to streaming logs for real-time frontend calculations
+    # Append metrics dynamically to streaming logs for real-time frontend calculations
     payload["revenue"] = round(avg_order_value, 2) if status == "Purchased" else 0.0
+    payload["variant"] = message_variant
     live_theater_stream.append(payload)
             
     return {"status": "Webhook received and logged to database"}

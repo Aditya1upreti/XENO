@@ -245,23 +245,43 @@ body{
 
     </section>
 
-    <section class="w-1/2 p-6 flex flex-col bg-[#050505]">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xs uppercase tracking-[0.25em] text-muted">
-                Live Campaign Theater
-            </h2>
-            
-            <!-- Live Revenue Display Panel -->
-            <div class="px-5 py-2 rounded-2xl bg-[#00E676]/10 border border-[#00E676]/20 flex items-center gap-3">
-                <i class="fa-solid fa-coins text-[#00E676] text-lg"></i>
-                <div>
-                    <span class="text-[10px] text-muted uppercase tracking-wider block leading-none">Revenue Influenced</span>
-                    <span id="live-revenue-counter" class="text-xl font-extrabold" style="color: #00E676;">₹0.00</span>
+    <section class="w-1/2 p-6 flex flex-col bg-[#050505] overflow-y-auto hidden-scrollbar">
+        <div class="flex flex-col gap-4 mb-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xs uppercase tracking-[0.25em] text-muted">
+                    Live Campaign Theater
+                </h2>
+                
+                <!-- Live Revenue Display Panel -->
+                <div class="px-5 py-2 rounded-2xl bg-[#00E676]/10 border border-[#00E676]/20 flex items-center gap-3">
+                    <i class="fa-solid fa-coins text-[#00E676] text-lg"></i>
+                    <div>
+                        <span class="text-[10px] text-muted uppercase tracking-wider block leading-none">Revenue Influenced</span>
+                        <span id="live-revenue-counter" class="text-xl font-extrabold" style="color: #00E676;">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live A/B Testing Scoreboard -->
+            <div class="flex gap-4">
+                <div class="flex-1 px-4 py-3 rounded-2xl bg-blue-500/10 border border-blue-400/20 text-blue-400 flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] text-blue-300/60 uppercase tracking-wider block leading-none mb-1">Variant A (FOMO)</span>
+                        <span id="ctr-a-display" class="text-lg font-bold">0.0% CTR</span>
+                    </div>
+                    <i class="fa-solid fa-bolt text-lg opacity-40"></i>
+                </div>
+                <div class="flex-1 px-4 py-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 text-purple-400 flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] text-purple-300/60 uppercase tracking-wider block leading-none mb-1">Variant B (Reward)</span>
+                        <span id="ctr-b-display" class="text-lg font-bold">0.0% CTR</span>
+                    </div>
+                    <i class="fa-solid fa-crown text-lg opacity-40"></i>
                 </div>
             </div>
         </div>
 
-        <div id="theater-screen" class="theater flex-1 rounded-[32px] flex items-center justify-center relative overflow-hidden">
+        <div id="theater-screen" class="theater flex-1 rounded-[32px] flex items-center justify-center relative overflow-hidden" style="min-height: 400px;">
             <div id="theater-empty-state" class="text-center relative z-10">
                 <i class="fa-solid fa-satellite-dish text-5xl text-muted mb-6 opacity-30"></i>
                 <h3 class="text-lg font-semibold mb-2 text-white/80">
@@ -297,20 +317,40 @@ body{
                 
                 // Aggregate real-time influenced revenue dynamically
                 let accumulatedRevenue = 0;
+                let deliveredA = 0, clickedA = 0;
+                let deliveredB = 0, clickedB = 0;
+
                 data.events.forEach(event => {
+                    const variant = event.variant || 'A';
+                    
                     if (event.status === 'Purchased' && event.revenue) {
                         accumulatedRevenue += parseFloat(event.revenue);
+                    }
+
+                    // A/B metric mapping rules
+                    if (event.status === 'Delivered' || event.status === 'Opened' || event.status === 'Clicked' || event.status === 'Purchased') {
+                        if (variant === 'A') deliveredA++;
+                        else deliveredB++;
+                    }
+                    if (event.status === 'Clicked' || event.status === 'Purchased') {
+                        if (variant === 'A') clickedA++;
+                        else clickedB++;
                     }
                 });
                 
                 // Format and update revenue counter
                 liveRevenueCounter.innerText = `₹${accumulatedRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 
+                // Process A/B split results live
+                const ctrA = deliveredA > 0 ? ((clickedA / deliveredA) * 100).toFixed(1) : "0.0";
+                const ctrB = deliveredB > 0 ? ((clickedB / deliveredB) * 100).toFixed(1) : "0.0";
+                document.getElementById('ctr-a-display').innerText = `${ctrA}% CTR`;
+                document.getElementById('ctr-b-display').innerText = `${ctrB}% CTR`;
+
                 // If there are new events, render them
                 if (data.events.length > lastEventCount) {
                     liveEventsContainer.innerHTML = ''; // Clear old to prevent duplicates
                     
-                    // Render the latest events to keep the UI clean
                     const latestEvents = data.events;                    
                     latestEvents.forEach(event => {
                         let statusColor = 'text-white border-white/20 bg-white/5';
@@ -323,10 +363,14 @@ body{
                         if (event.status === 'Purchased') { statusColor = 'text-[#00E676] border-[#00E676]/50 bg-[#00E676]/20 font-bold'; icon = 'fa-cart-shopping'; }
                         if (event.status === 'PermanentlyFailed') { statusColor = 'text-red-500 border-red-500/30 bg-red-500/10 font-bold'; icon = 'fa-circle-xmark'; }
 
+                        // Distinct variant borders: Blue for Variant A, Purple for Variant B
+                        const variant = event.variant || 'A';
+                        const variantBorder = variant === 'A' ? 'border: 2px solid #3B82F6 !important;' : 'border: 2px solid #A855F7 !important;';
+
                         const eventHtml = `
-                            <div class="flex items-center gap-4 py-2 px-4 rounded-xl border ${statusColor} animate-fade-in-up">
+                            <div class="flex items-center gap-4 py-2 px-4 rounded-xl border ${statusColor} animate-fade-in-up" style="${variantBorder}">
                                 <i class="fa-solid ${icon} w-5"></i>
-                                <span class="font-mono text-sm opacity-50">MSG_${event.message_id}</span>
+                                <span class="font-mono text-sm opacity-50">MSG_${event.message_id} (${variant})</span>
                                 <span class="text-sm tracking-wide ml-auto">${event.status}</span>
                             </div>
                         `;
@@ -351,13 +395,8 @@ body{
     setInterval(pollLiveTheater, 800);
 
     function triggerAria(opportunityTitle) {
-        // 1. Grab the chat box
         const chatInput = document.getElementById('ai-prompt');
-        
-        // 2. Auto-fill the prompt with a command to ARIA
         chatInput.value = `Draft a highly converting WhatsApp campaign for the "${opportunityTitle}" opportunity, and launch it.`;
-        
-        // 3. Automatically click the send button for the user!
         chatInput.nextElementSibling.click();
     }
 
@@ -414,7 +453,6 @@ body{
             // 4. Remove Typing Indicator & Append ARIA Response
             document.getElementById(typingId).remove();
             
-            // Format ARIA's response to handle line breaks natively
             const formattedReply = data.reply.replace(/\n/g, '<br>');
             
             const ariaHtml = `
