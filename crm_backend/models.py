@@ -60,14 +60,14 @@ class Campaign(SQLModel, table=True):
 # 4. MESSAGE LOG TABLE
 class MessageLog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    message_id: Optional[str] = Field(default=None) # Primary carrier messaging identifier
-    campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
+    message_id: Optional[str] = Field(default=None, index=True) # Optimized search index
+    campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id", index=True) # Grouping performance index
     customer_id: Optional[int] = Field(default=None, foreign_key="customer.id")
     channel: str = Field(default="WhatsApp")
     message_text: str = Field(default="")
-    status: str = Field(default="Pending") # Pending -> Sent -> Delivered -> Opened -> Clicked -> Purchased -> Failed
+    status: str = Field(default="Pending", index=True) # Pipeline filtering index
     variant: Optional[str] = Field(default="A") # Added variant field for A/B testing
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True) # Order performance index
 
     campaign: Optional[Campaign] = Relationship(back_populates="messages")
     customer: Optional[Customer] = Relationship(back_populates="messages")

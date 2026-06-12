@@ -1,4 +1,4 @@
-<!-- index.html -->
+<!-- templates/index.html -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -407,6 +407,16 @@ body{
                     
                     lastEventCount = data.events.length;  
                 }
+            } else {
+                // If there are zero events returned (e.g. clean DB), revert to empty state safely
+                theaterEmptyState.classList.remove('hidden');
+                liveEventsContainer.classList.add('hidden');
+                liveRevenueCounter.innerText = "₹0.00";
+                document.getElementById('ctr-a-display').innerText = "0.0% CTR";
+                document.getElementById('ctr-b-display').innerText = "0.0% CTR";
+                document.getElementById('count-whatsapp').innerText = "0";
+                document.getElementById('count-sms').innerText = "0";
+                document.getElementById('count-email').innerText = "0";
             }
             liveEventsContainer.scrollTop = liveEventsContainer.scrollHeight;
         } catch (error) {

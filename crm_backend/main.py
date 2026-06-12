@@ -115,11 +115,6 @@ class WebhookPayload(BaseModel):
     message_id: int
     status: str
 
-# We will use this list to temporarily store incoming webhooks
-# so the frontend can read them dynamically.
-live_theater_stream = []
-
-
 @app.post("/api/webhook/delivery")
 async def receive_delivery_webhook(payload: dict):
     message_id_str = str(payload.get("message_id"))
@@ -127,8 +122,6 @@ async def receive_delivery_webhook(payload: dict):
     status = payload.get("status")
     
     avg_order_value = 0.0
-    message_variant = "A"
-    message_channel = "WhatsApp"
     
     with Session(engine) as session:
         # Update or create the MessageLog record
@@ -138,8 +131,6 @@ async def receive_delivery_webhook(payload: dict):
         if log:
             log.status = status
             log.updated_at = datetime.utcnow()
-            message_variant = log.variant or "A"
-            message_channel = log.channel or "WhatsApp"
             session.add(log)
         else:
             log = MessageLog(
@@ -200,7 +191,6 @@ async def receive_delivery_webhook(payload: dict):
                 campaign.total_revenue_attributed += round(avg_order_value, 2)
             
             # Check if campaign status should be set to Completed when all messages processed
-            # Check if campaign status should be set to Completed when all messages processed
             now_naive = datetime.utcnow()
             created_naive = campaign.created_at.replace(tzinfo=None)
             time_elapsed = (now_naive - created_naive).total_seconds()
@@ -210,12 +200,6 @@ async def receive_delivery_webhook(payload: dict):
             session.add(campaign)
             session.commit()
 
-    
-    # Append metrics dynamically to streaming logs for real-time frontend calculations
-    payload["revenue"] = round(avg_order_value, 2) if status == "Purchased" else 0.0
-    payload["variant"] = message_variant
-    payload["channel"] = message_channel
-    live_theater_stream.append(payload)
     if status == "Purchased":
         try:
             with Session(engine) as refresh_session:
@@ -223,10 +207,50 @@ async def receive_delivery_webhook(payload: dict):
         except Exception as e:
             print(f"Failed to auto-refresh opportunities on purchase: {e}")
 
-            
     return {"status": "Webhook received and logged to database"}
 
 @app.get("/api/theater/stream")
-def get_theater_stream():
-    """Endpoint for the frontend UI to poll for new live events."""
-    return {"events": live_theater_stream}
+def get_theater_stream(session: Session = Depends(get_session)):
+    """Endpoint for the frontend UI to poll for live events, backed by SQLite as single source of truth."""
+    # Query the latest active campaign
+    latest_campaign_stmt = select(Campaign).order_by(Campaign.created_at.desc())
+    latest_campaign = session.exec(latest_campaign_stmt).first()
+    
+    if not latest_campaign:
+        return {"events": []}
+    
+    # Query all non-Pending message log transitions for the latest campaign to feed theater streams
+    logs_stmt = select(MessageLog).where(
+        MessageLog.campaign_id == latest_campaign.id,
+        MessageLog.status != "Pending"
+    ).order_by(MessageLog.updated_at.asc())
+    
+    logs = session.exec(logs_stmt).all()
+    
+    events = []
+    for log in logs:
+        revenue = 0.0
+        # Calculate conversion order value dynamically to support live counters
+        if log.status == "Purchased" and log.customer_id:
+            order_stmt = select(Order).where(Order.customer_id == log.customer_id)
+            orders = session.exec(order_stmt).all()
+            if orders:
+                revenue = round(sum(o.amount for o in orders) / len(orders), 2)
+            else:
+                customer_stmt = select(Customer).where(Customer.id == log.customer_id)
+                customer = session.exec(customer_stmt).first()
+                if customer and customer.lifetime_spend > 0:
+                    revenue = round(customer.lifetime_spend / 5.0, 2)
+                else:
+                    revenue = 1500.0
+
+        events.append({
+            "campaign_id": log.campaign_id,
+            "message_id": int(log.message_id) if (log.message_id and log.message_id.isdigit()) else 0,
+            "status": log.status,
+            "revenue": revenue,
+            "variant": log.variant or "A",
+            "channel": log.channel or "WhatsApp"
+        })
+        
+    return {"events": events}
