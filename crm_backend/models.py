@@ -64,7 +64,7 @@ class MessageLog(SQLModel, table=True):
     campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
     customer_id: Optional[int] = Field(default=None, foreign_key="customer.id")
     channel: str = Field(default="WhatsApp")
-    message_text: str
+    message_text: str = Field(default="")
     status: str = Field(default="Pending") # Pending -> Sent -> Delivered -> Opened -> Clicked -> Purchased -> Failed
     variant: Optional[str] = Field(default="A") # Added variant field for A/B testing
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

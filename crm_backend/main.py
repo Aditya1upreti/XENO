@@ -200,25 +200,29 @@ async def receive_delivery_webhook(payload: dict):
                 campaign.total_revenue_attributed += round(avg_order_value, 2)
             
             # Check if campaign status should be set to Completed when all messages processed
-            time_elapsed = (datetime.utcnow() - campaign.created_at.replace(tzinfo=None)).total_seconds()
+            # Check if campaign status should be set to Completed when all messages processed
+            now_naive = datetime.utcnow()
+            created_naive = campaign.created_at.replace(tzinfo=None)
+            time_elapsed = (now_naive - created_naive).total_seconds()
             if time_elapsed > 20:
                 campaign.status = "Completed"
                 
             session.add(campaign)
             session.commit()
 
-        # Task 8 Action: Recalculate opportunities automatically when a 'Purchased' status arrives
-        if status == "Purchased":
-            try:
-                db_refresh_opportunities(session)
-            except Exception as e:
-                print(f"Failed to auto-refresh proactive opportunities on webhook purchase: {e}")
-
+    
     # Append metrics dynamically to streaming logs for real-time frontend calculations
     payload["revenue"] = round(avg_order_value, 2) if status == "Purchased" else 0.0
     payload["variant"] = message_variant
     payload["channel"] = message_channel
     live_theater_stream.append(payload)
+    if status == "Purchased":
+        try:
+            with Session(engine) as refresh_session:
+                db_refresh_opportunities(refresh_session)
+        except Exception as e:
+            print(f"Failed to auto-refresh opportunities on purchase: {e}")
+
             
     return {"status": "Webhook received and logged to database"}
 

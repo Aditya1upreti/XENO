@@ -305,7 +305,7 @@ RULES:
 # NEW CONFIGURATION SETUP
 config = types.GenerateContentConfig(
     system_instruction=system_instruction,
-    tools=[segment_audience, stage_campaign, analyze_campaign_performance, autonomous_optimize, route_channel],
+    tools=[segment_audience, stage_campaign, analyze_campaign_performance, autonomous_optimize],
     temperature=0.2
 )
 
