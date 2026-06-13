@@ -162,10 +162,13 @@ class ChatRequest(BaseModel):
     message: str
 
 @app.post("/api/chat")
-def chat_with_aria(request: ChatRequest):
+def chat_with_aria(request: ChatRequest, session: Session = Depends(get_session)):
     """Routes frontend text inputs directly to the Gemini Agent and returns the response."""
     ai_response = ask_aria(request.message)
-    return {"reply": ai_response}
+    # Return the latest campaign_id so frontend can filter theater events correctly
+    latest_campaign = session.exec(select(Campaign).order_by(Campaign.created_at.desc())).first()
+    campaign_id = latest_campaign.id if latest_campaign else None
+    return {"reply": ai_response, "campaign_id": campaign_id}
 
 
 # ---------------------------------------------------------
