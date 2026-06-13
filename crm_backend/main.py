@@ -161,16 +161,19 @@ def health_check(session: Session = Depends(get_session)):
 class ChatRequest(BaseModel):
     message: str
 
+
+
 @app.post("/api/chat")
 def chat_with_aria(request: ChatRequest, session: Session = Depends(get_session)):
-    """Routes frontend text inputs directly to the Gemini Agent and returns the response."""
     ai_response = ask_aria(request.message)
-    # Return the latest campaign_id so frontend can filter theater events correctly
-    latest_campaign = session.exec(select(Campaign).order_by(Campaign.created_at.desc())).first()
+    # Only return campaign_id if a campaign is actively running
+    latest_campaign = session.exec(
+        select(Campaign)
+        .where(Campaign.status == "Running")
+        .order_by(Campaign.created_at.desc())
+    ).first()
     campaign_id = latest_campaign.id if latest_campaign else None
     return {"reply": ai_response, "campaign_id": campaign_id}
-
-
 # ---------------------------------------------------------
 # PHASE 3: WEBHOOK RECEIVER & LIVE THEATER STREAMING
 # ---------------------------------------------------------
