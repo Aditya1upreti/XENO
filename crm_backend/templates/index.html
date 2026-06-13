@@ -1723,10 +1723,12 @@
                 if (data.campaignId) window._activeCampaignId = data.campaignId;
 
                 /* 4. Remove typing indicator */
-                document.getElementById(typingId).remove();
+                document.getElementById(typingId)?.remove();
+
 
                 /* 5. Format reply */
-                let formattedReply = data.reply
+                const replyText = data.reply || "ARIA has completed the action. Check the Live Theater.";
+                let formattedReply = replyText
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;')

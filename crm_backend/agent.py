@@ -530,5 +530,7 @@ def ask_aria(user_prompt: str) -> str:
         return response.text or "ARIA has completed the requested action. Check the Live Theater for updates."
         
     except Exception as e:
-        print(f"⚠️ API Error Encountered: {e}")
-        return f"ARIA is temporarily offline due to an API connectivity issue. All customer data and campaign tools remain available. Please try again in a moment.{str(e)}"
+        error_text = str(e)
+        if "RESOURCE_EXHAUSTED" in error_text or "429" in error_text:
+            return "ARIA has reached the Gemini API quota limit. Please wait a few minutes or check your API plan at aistudio.google.com"
+        return "ARIA is temporarily offline due to an API connectivity issue. Please try again in a moment."
