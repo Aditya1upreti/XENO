@@ -81,3 +81,13 @@ class Opportunity(SQLModel, table=True):
     potential_revenue: float
     status: str = Field(default="Active") # Active, Actioned, Ignored
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# 6. PRIORITY 3: CAMPAIGN MEMORY TABLE
+class CampaignMemory(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    persona: str = Field(index=True)
+    winner_variant: str
+    ctr: float
+    open_rate: float
+    lesson_learned: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)

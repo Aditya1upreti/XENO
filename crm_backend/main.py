@@ -1,28 +1,35 @@
 # crm_backend/main.py
 
-from datetime import datetime
+# FIX #4: added timezone to imports
+from datetime import datetime, timezone
 import os
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from typing import List
 from pydantic import BaseModel
 
 from crm_backend.database import engine, get_session, create_db_and_tables
-from crm_backend.models import Customer, Order, Campaign, MessageLog, Opportunity
+from crm_backend.models import Customer, Order, Campaign, MessageLog, Opportunity, CampaignMemory
 from crm_backend.agent import ask_aria
-
-app = FastAPI(title="NEXUS AI-Native CRM Brain")
+from crm_backend.seed import seed_database
 
 # PRODUCTION FIX: Establish directory paths relative to this file's location
 BASE_DIR = os.getenv("BASE_DIR", os.path.dirname(os.path.abspath(__file__)))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-@app.on_event("startup")
-def on_startup():
+# FIX #6: startup lifespan now calls seed_database() so Render cold starts get a populated DB
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     create_db_and_tables()
+    seed_database()
+    yield
+
+# Consolidated FastAPI application instantiation with standard single lifespan initialization
+app = FastAPI(title="NEXUS AI-Native CRM Brain", lifespan=lifespan)
 
 # ==========================================
 #      OPPORTUNITY REFRESH HELPER (DRY)
@@ -81,9 +88,10 @@ def read_root(request: Request, session: Session = Depends(get_session)):
 def get_opportunities(session: Session = Depends(get_session)):
     return session.exec(select(Opportunity)).all()
 
+# FIX #18: added sort by churn_score descending so high-risk customers appear first
 @app.get("/api/customers", response_model=List[Customer])
 def get_customers(session: Session = Depends(get_session), limit: int = 10):
-    return session.exec(select(Customer).limit(limit)).all()
+    return session.exec(select(Customer).order_by(Customer.churn_score.desc()).limit(limit)).all()
 
 @app.get("/api/campaigns", response_model=List[Campaign])
 def get_campaigns(session: Session = Depends(get_session)):
@@ -94,6 +102,50 @@ def refresh_opportunities(session: Session = Depends(get_session)):
     """API endpoint to dynamically force-recalculate and write fresh Opportunity cards to SQLite."""
     db_refresh_opportunities(session)
     return {"status": "SUCCESS", "message": "Proactive opportunities updated with fresh database states."}
+
+@app.get("/api/analysis/why-not")
+def get_why_not_analysis(session: Session = Depends(get_session)):
+    """Exposes a comparative marketing run across all four shopper personas in SQLite."""
+    customers = session.exec(select(Customer)).all()
+    all_personas = ["Lapsed VIP", "Weekend Deal Hunter", "Premium Loyalist", "Fashionista"]
+    groups = {p: [] for p in all_personas}
+    for c in customers:
+        if c.persona in groups:
+            groups[c.persona].append(c)
+            
+    results = []
+    for p in all_personas:
+        cohort = groups[p]
+        count = len(cohort)
+        risk = sum(c.revenue_at_risk for c in cohort if c.revenue_at_risk)
+        
+        # Expected ROI calculation logic mirroring crm_backend/agent.py
+        avg_conversion = sum(c.conversion_score for c in cohort) / max(1, count)
+        avg_engagement = sum(c.engagement_score for c in cohort) / max(1, count)
+        roi = round((avg_conversion * 0.12) + (avg_engagement * 0.04), 1)
+        
+        results.append({
+            "persona": p,
+            "count": count,
+            "revenue_at_risk": round(risk, 2),
+            "expected_roi": roi
+        })
+        
+    # Sort descending by Expected ROI %
+    results.sort(key=lambda x: x["expected_roi"], reverse=True)
+    return {"segments": results}
+
+# FIX: health check endpoint — ping this before demo to confirm DB is seeded and service is warm
+@app.get("/api/health")
+def health_check(session: Session = Depends(get_session)):
+    customer_count = session.exec(select(func.count(Customer.id))).one()
+    campaign_count = session.exec(select(func.count(Campaign.id))).one()
+    return {
+        "status": "healthy",
+        "customers": customer_count,
+        "campaigns": campaign_count,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 # Pydantic schema for the incoming chat request
 class ChatRequest(BaseModel):
@@ -110,17 +162,17 @@ def chat_with_aria(request: ChatRequest):
 # PHASE 3: WEBHOOK RECEIVER & LIVE THEATER STREAMING
 # ---------------------------------------------------------
 
-class WebhookPayload(BaseModel):
-    campaign_id: int
-    message_id: int
-    status: str
 
+# FIX #10: changed from async def to def — FastAPI runs sync endpoints in thread pool,
+# which is correct for blocking SQLite operations. async def was blocking the event loop.
 @app.post("/api/webhook/delivery")
-async def receive_delivery_webhook(payload: dict):
+def receive_delivery_webhook(payload: dict):
+    status = payload.get("status")
+    if not status:
+        return {"status": "ignored - no status provided"}
+    
     message_id_str = str(payload.get("message_id"))
     campaign_id = payload.get("campaign_id", 0)
-    status = payload.get("status")
-    
     avg_order_value = 0.0
     
     with Session(engine) as session:
@@ -129,8 +181,11 @@ async def receive_delivery_webhook(payload: dict):
         log = session.exec(statement).first()
         
         if log:
+            if log.status == status:
+                return {"status": "ignored - duplicate webhook"}
             log.status = status
-            log.updated_at = datetime.utcnow()
+            # FIX #3: use timezone-aware datetime
+            log.updated_at = datetime.now(timezone.utc)
             session.add(log)
         else:
             log = MessageLog(
@@ -141,20 +196,27 @@ async def receive_delivery_webhook(payload: dict):
                 message_text="",
                 status=status,
                 variant="A",
-                updated_at=datetime.utcnow()
+                # FIX #3: use timezone-aware datetime
+                updated_at=datetime.now(timezone.utc)
             )
             session.add(log)
             
         session.commit()
         session.refresh(log)
         
-        # Task 4 Check: Set customer churn_score to 100 on PermanentlyFailed status
+        # Set customer churn_score to 100 on PermanentlyFailed status
         if status == "PermanentlyFailed":
             if log.customer_id and log.customer_id != 0:
                 customer_statement = select(Customer).where(Customer.id == log.customer_id)
                 customer = session.exec(customer_statement).first()
                 if customer:
                     customer.churn_score = 100
+                    # FIX #15: also recalculate revenue_at_risk when churn hits 100
+                    order_stmt_risk = select(Order).where(Order.customer_id == customer.id)
+                    orders_risk = session.exec(order_stmt_risk).all()
+                    if orders_risk:
+                        avg_order_risk = sum(o.amount for o in orders_risk) / len(orders_risk)
+                        customer.revenue_at_risk = round(avg_order_risk * 1.0, 2)
                     session.add(customer)
                     session.commit()
         
@@ -190,20 +252,77 @@ async def receive_delivery_webhook(payload: dict):
                 
                 campaign.total_revenue_attributed += round(avg_order_value, 2)
             
-            # Check if campaign status should be set to Completed when all messages processed
-            now_naive = datetime.utcnow()
-            created_naive = campaign.created_at.replace(tzinfo=None)
-            time_elapsed = (now_naive - created_naive).total_seconds()
-            if time_elapsed > 20:
-                campaign.status = "Completed"
-                
-            session.add(campaign)
-            session.commit()
+            # CRITICAL LIFE-CYCLE FIX: Count all terminal actions (Delivered + PermanentlyFailed) 
+            # by executing a precise state check on MessageLog to prevent infinite loop stalls.
+            total_processed_stmt = select(func.count(MessageLog.id)).where(
+                MessageLog.campaign_id == campaign.id,
+                MessageLog.status != "Pending",
+                MessageLog.status != "Sent"
+            )
+            total_processed = session.exec(total_processed_stmt).one()
 
-    if status == "Purchased":
+            if (total_processed >= campaign.customers_targeted 
+                    and campaign.customers_targeted > 0 
+                    and campaign.status == "Running"):
+                campaign.status = "Completed"
+                session.add(campaign)
+                session.commit()
+                session.refresh(campaign)
+                
+                # Write cognitive performance to CampaignMemory on completion
+                logs_list = session.exec(select(MessageLog).where(MessageLog.campaign_id == campaign.id)).all()
+                if logs_list:
+                    split_metrics = {
+                        "A": {"delivered": 0, "clicked": 0, "opened": 0},
+                        "B": {"delivered": 0, "clicked": 0, "opened": 0}
+                    }
+                    for message in logs_list:
+                        v = message.variant or "A"
+                        if message.status in ["Delivered", "Opened", "Clicked", "Purchased"]:
+                            split_metrics[v]["delivered"] += 1
+                        if message.status in ["Opened", "Clicked", "Purchased"]:
+                            split_metrics[v]["opened"] += 1
+                        if message.status in ["Clicked", "Purchased"]:
+                            split_metrics[v]["clicked"] += 1
+                            
+                    ctr_a = (split_metrics["A"]["clicked"] / max(1, split_metrics["A"]["delivered"])) * 100
+                    ctr_b = (split_metrics["B"]["clicked"] / max(1, split_metrics["B"]["delivered"])) * 100
+                    
+                    winner_variant = "A" if ctr_a > ctr_b else "B" if ctr_b > ctr_a else "A"
+                    winner_ctr = max(ctr_a, ctr_b)
+                    
+                    total_delivered = sum(m["delivered"] for m in split_metrics.values())
+                    total_opened = sum(m["opened"] for m in split_metrics.values())
+                    overall_open_rate = round((total_opened / max(1, total_delivered)) * 100, 1)
+                    
+                    known_personas = ["Lapsed VIP", "Premium Loyalist", "Fashionista", "Weekend Deal Hunter"]
+                    persona_val = campaign.name.replace("Campaign for ", "")
+                    if persona_val not in known_personas:
+                        persona_val = "Unknown"
+                    if winner_variant == "A":
+                        lesson = "urgency and limited-time warnings performed best at capturing click interest."
+                    else:
+                        lesson = "exclusivity benefits and direct premium rewards statements drove higher conversion scores."
+                        
+                    mem = CampaignMemory(
+                        persona=persona_val,
+                        winner_variant=winner_variant,
+                        ctr=round(winner_ctr, 1),
+                        open_rate=overall_open_rate,
+                        lesson_learned=lesson
+                    )
+                    session.add(mem)
+                    session.commit()
+            else:
+                session.add(campaign)
+                session.commit()
+        purchased_count_snapshot = campaign.purchased_count if campaign else 0
+
+    # FIX #12: db_refresh_opportunities now uses a FRESH session, not the already-committed one
+    if status == "Purchased" and purchased_count_snapshot % 5 == 0:
         try:
-            with Session(engine) as refresh_session:
-                db_refresh_opportunities(refresh_session)
+            with Session(engine) as fresh_session:
+                db_refresh_opportunities(fresh_session)
         except Exception as e:
             print(f"Failed to auto-refresh opportunities on purchase: {e}")
 
@@ -219,7 +338,7 @@ def get_theater_stream(session: Session = Depends(get_session)):
     if not latest_campaign:
         return {"events": []}
     
-    # Query all non-Pending message log transitions for the latest campaign to feed theater streams
+    # Query all non-Pending message log transitions for the latest campaign
     logs_stmt = select(MessageLog).where(
         MessageLog.campaign_id == latest_campaign.id,
         MessageLog.status != "Pending"
@@ -230,7 +349,6 @@ def get_theater_stream(session: Session = Depends(get_session)):
     events = []
     for log in logs:
         revenue = 0.0
-        # Calculate conversion order value dynamically to support live counters
         if log.status == "Purchased" and log.customer_id:
             order_stmt = select(Order).where(Order.customer_id == log.customer_id)
             orders = session.exec(order_stmt).all()
@@ -246,7 +364,8 @@ def get_theater_stream(session: Session = Depends(get_session)):
 
         events.append({
             "campaign_id": log.campaign_id,
-            "message_id": int(log.message_id) if (log.message_id and log.message_id.isdigit()) else 0,
+            # FIX #19: return message_id as plain string — no int cast that returns 0 for non-numeric IDs
+            "message_id": log.message_id or "unknown",
             "status": log.status,
             "revenue": revenue,
             "variant": log.variant or "A",

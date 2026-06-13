@@ -1,8 +1,14 @@
+# crm_backend/seed.py
+
 import random
 from datetime import datetime, timedelta, timezone
 from sqlmodel import Session, select
-from models import Customer, Order, Opportunity
-from database import engine, create_db_and_tables
+
+# FIX #7: changed from relative imports to package-qualified imports
+# so this file works correctly when called from crm_backend/main.py startup event
+from crm_backend.models import Customer, Order, Opportunity, CampaignMemory
+from crm_backend.database import engine, create_db_and_tables
+
 FIRST_NAMES = ["Aarav", "Vihaan", "Aditya", "Diya", "Ananya", "Sneha", "Karan", "Priya", "Rahul", "Neha", "Rohan", "Shruti", "Kabir", "Meera", "Arjun", "Zara"]
 LAST_NAMES = ["Sharma", "Singh", "Patel", "Gupta", "Verma", "Reddy", "Kumar", "Deshmukh", "Joshi", "Kapoor", "Iyer", "Chopra"]
 CITIES = ["Delhi", "Mumbai", "Bangalore", "Hyderabad", "Chennai", "Pune", "Jaipur", "Ahmedabad", "Kolkata"]
@@ -48,7 +54,6 @@ def seed_database():
             f_name = random.choice(FIRST_NAMES)
             l_name = random.choice(LAST_NAMES)
             
-            # Create base customer
             customer = Customer(
                 name=f"{f_name} {l_name}",
                 email=f"{f_name.lower()}.{l_name.lower()}{random.randint(100, 999)}@example.com",
@@ -59,7 +64,7 @@ def seed_database():
                 churn_score=churn_score,
                 last_purchase_date=last_purchase,
                 avg_purchase_interval_days=avg_interval,
-                revenue_at_risk=0.0, # Will update after calculating total spend
+                revenue_at_risk=0.0,
                 lifetime_spend=0.0
             )
             session.add(customer)
@@ -81,7 +86,7 @@ def seed_database():
                 session.add(order)
                 timeline_date = timeline_date - timedelta(days=random.randint(avg_interval - 5, avg_interval + 5))
                 
-            # Dynamic Revenue At Risk & Lifetime Spend!
+            # Dynamic Revenue At Risk & Lifetime Spend
             customer.lifetime_spend = round(total_spend, 2)
             avg_order = total_spend / order_count
             customer.revenue_at_risk = round(avg_order * (churn_score / 100), 2) if churn_score > 60 else 0.0
@@ -130,7 +135,30 @@ def seed_database():
             customer_count=43, potential_revenue=126000.00
         ))
         session.commit()
-        print("✅ Successfully seeded intelligent profiles, Outliers, and Opportunity Cards!")
+
+        # ==========================================
+        # PRE-SEED CAMPAIGN MEMORIES
+        # ==========================================
+        print("Pre-seeding cognitive Campaign Memory records...")
+        session.add(CampaignMemory(
+            persona="Lapsed VIP",
+            winner_variant="A",
+            ctr=14.5,
+            open_rate=72.0,
+            lesson_learned="urgency and limited-time warnings performed best at capturing click interest."
+        ))
+        session.add(CampaignMemory(
+            persona="Premium Loyalist",
+            winner_variant="B",
+            ctr=18.2,
+            open_rate=88.5,
+            lesson_learned="exclusivity benefits and direct premium rewards statements drove higher conversion scores."
+        ))
+        session.commit()
+        print("✅ Successfully seeded Shoppers, Outliers, Opportunities, and Campaign Memories!")
 
 if __name__ == "__main__":
+    import sys 
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     seed_database()

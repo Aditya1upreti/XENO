@@ -18,7 +18,7 @@ def read_root():
 CRM_WEBHOOK_URL = os.getenv("CRM_WEBHOOK_URL", "http://localhost:8000/api/webhook/delivery")
 
 class MessagePayload(BaseModel):
-    message_id: int
+    message_id: str
     customer_id: int
     contact_info: str
     variant: str = "A"

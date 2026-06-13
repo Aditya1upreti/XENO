@@ -96,13 +96,41 @@ body{
 }
 .action-btn:hover{ transform:translateY(-1px); }
 
-/* ARIA Copilot */
+/* ARIA Copilot Styled Elements */
 .aria-section{
     background:linear-gradient(180deg, rgba(79,209,197,.12), rgba(79,209,197,.03));
 }
 .aria-message{
     background:rgba(79,209,197,.05);
     border:1px solid rgba(79,209,197,.15);
+}
+.aria-message h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #4FD1C5;
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+.aria-message ul {
+    list-style-type: none;
+    padding-left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.aria-message li {
+    position: relative;
+    padding-left: 1.25rem;
+    color: var(--text-secondary);
+}
+.aria-message li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #4FD1C5;
+    font-weight: bold;
 }
 
 /* Input */
@@ -237,7 +265,7 @@ body{
                     placeholder="e.g. Target Lapsed VIPs with a win-back offer..."
                     class="nexus-input w-full rounded-2xl py-4 pl-5 pr-14 text-white text-sm"
                 >
-                <button class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-80 transition" style="background:#4FD1C5;color:#04110F;">
+                <button id="send-btn" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-80 transition" style="background:#4FD1C5;color:#04110F;">
                     <i class="fa-solid fa-paper-plane text-sm"></i>
                 </button>
             </div>
@@ -289,6 +317,19 @@ body{
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-envelope text-[#F97316]"></i> Email: <span id="count-email" class="text-white font-bold">0</span></span>
                 </div>
             </div>
+
+            <!-- Live Why-Not Segment Comparison Scoreboard -->
+            <div class="px-5 py-4 rounded-2xl bg-[#0D0D0D] border border-white/5 flex flex-col gap-3">
+                <div class="flex justify-between items-center text-xs text-muted uppercase tracking-wider font-semibold">
+                    <span>⚖️ Why-Not ROI Scoreboard</span>
+                    <span class="text-[10px] text-teal-400 capitalize cursor-pointer flex items-center gap-1" onclick="fetchWhyNotData()">
+                        <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                    </span>
+                </div>
+                <div class="flex flex-col gap-2.5 text-xs text-secondary" id="why-not-scoreboard-container">
+                    <!-- Dynamic segments loaded in JS -->
+                </div>
+            </div>
         </div>
 
         <div id="theater-screen" class="theater flex-1 rounded-[32px] flex items-center justify-center relative overflow-hidden" style="min-height: 400px;">
@@ -314,6 +355,40 @@ body{
     const liveEventsContainer = document.getElementById('live-events-container');
     const liveRevenueCounter = document.getElementById('live-revenue-counter');
     let lastEventCount = 0;
+
+    async function fetchWhyNotData() {
+        try {
+            const response = await fetch('/api/analysis/why-not');
+            const data = await response.json();
+            const container = document.getElementById('why-not-scoreboard-container');
+            container.innerHTML = '';
+            
+            data.segments.forEach((seg, idx) => {
+                const isWinner = idx === 0;
+                const statusText = isWinner ? 'SELECTED' : 'EXCLUDED';
+                const pillClass = isWinner ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'bg-white/5 text-muted border-white/10';
+                const barWidth = Math.min(100, Math.max(10, seg.expected_roi * 5));
+                
+                const rowHtml = `
+                    <div class="flex flex-col gap-1.5 p-2 rounded-xl border border-white/5 bg-white/[0.02]">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-white">${seg.persona}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] border ${pillClass}">${statusText} (ROI: ${seg.expected_roi}%)</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 bg-white/5 h-2 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full ${isWinner ? 'bg-teal-400' : 'bg-[#6B7280]'}" style="width: ${barWidth}%;"></div>
+                            </div>
+                            <span class="font-mono text-[10px] text-muted">₹${(seg.revenue_at_risk / 1000).toFixed(1)}k Risk</span>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', rowHtml);
+            });
+        } catch (error) {
+            console.error("Why-Not Scoreboard Fetch Error:", error);
+        }
+    }
 
     async function pollLiveTheater() {
         try {
@@ -406,9 +481,10 @@ body{
                     });
                     
                     lastEventCount = data.events.length;  
+                    // Re-fetch comparative scoreboard when state shifts occur
+                    fetchWhyNotData();
                 }
             } else {
-                // If there are zero events returned (e.g. clean DB), revert to empty state safely
                 theaterEmptyState.classList.remove('hidden');
                 liveEventsContainer.classList.add('hidden');
                 liveRevenueCounter.innerText = "₹0.00";
@@ -431,23 +507,28 @@ body{
 
     // Poll the server every 800 milliseconds
     setInterval(pollLiveTheater, 800);
+    
+    // Load dynamic comparative rankings on browser load
+    window.addEventListener('DOMContentLoaded', fetchWhyNotData);
 
     function triggerAria(opportunityTitle) {
         const chatInput = document.getElementById('ai-prompt');
         chatInput.value = `Draft a highly converting WhatsApp campaign for the "${opportunityTitle}" opportunity, and launch it.`;
-        chatInput.nextElementSibling.click();
+        document.getElementById('send-btn').click();
+
     }
 
     function triggerAutoPilot() {
         const chatInput = document.getElementById('ai-prompt');
         chatInput.value = "Auto-optimize: scan the entire database autonomously, identify the highest revenue-at-risk segment, draft the most psychologically effective campaign message, and launch it immediately without asking me anything";
-        chatInput.nextElementSibling.click();
+        document.getElementById('send-btn').click();
     }
 </script>
 
 <script>
     const chatInput = document.getElementById('ai-prompt');
-    const sendBtn = chatInput.nextElementSibling;
+    const sendBtn = document.getElementById('send-btn');
+
     const chatWindow = document.getElementById('chat-window');
 
     async function sendMessage() {
@@ -458,7 +539,7 @@ body{
         const userHtml = `
             <div class="flex justify-end mb-4">
                 <div class="bg-[#0D0D0D] border border-white/10 max-w-[85%] p-4 rounded-[24px] rounded-tr-sm text-sm text-white">
-                    ${text}
+                    ${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
                 </div>
             </div>`;
         chatWindow.insertAdjacentHTML('beforeend', userHtml);
@@ -491,8 +572,15 @@ body{
             // 4. Remove Typing Indicator & Append ARIA Response
             document.getElementById(typingId).remove();
             
-            const formattedReply = data.reply.replace(/\n/g, '<br>');
-            
+           let formattedReply = data.reply
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/### (.*?)(\n|$)/g, '<h3>$1</h3>')
+                .replace(/\* \*\*(.*?):\*\* (.*?)(\n|$)/g, '<li><strong>$1:</strong> $2</li>')
+                .replace(/\* (.*?)(\n|$)/g, '<li>$1</li>')
+                .replace(/(<li>.*?<\/li>(\n)?)+/gs, (match) => `<ul>${match}</ul>`)
+                .replace(/\n/g, '<br>');
             const ariaHtml = `
                 <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%] mb-4">
                     <div class="flex items-center gap-2 mb-3">
