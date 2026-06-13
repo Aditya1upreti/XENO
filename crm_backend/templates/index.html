@@ -1315,13 +1315,21 @@
                 const allEvents = Array.isArray(data.events) ? data.events : [];
 
                 /* Bug #1 fix: discard events that pre-date the current campaign launch.
-                   This prevents stale backend events from triggering State 3/4 prematurely. */
-                const events = window._campaignStartedAt
-                    ? allEvents.filter(event => {
-                        if (!event.timestamp) return true; // keep if no timestamp field
-                        return new Date(event.timestamp).getTime() >= window._campaignStartedAt;
-                    })
-                    : allEvents;
+                   If timestamp is missing or unparseable (NaN), always KEEP the event —
+                   the backend does not emit timestamps so we can't filter by time.
+                   Instead we rely on campaign_id matching to isolate the current run. */
+                const activeCampaignId = window._activeCampaignId || null;
+                const events = allEvents.filter(event => {
+                    /* Primary filter: match campaign_id if we know it */
+                    if (activeCampaignId !== null && event.campaign_id !== undefined) {
+                        return event.campaign_id === activeCampaignId;
+                    }
+                    /* Fallback: if no timestamp, keep all (backend has no timestamps) */
+                    if (!event.timestamp) return true;
+                    const t = new Date(event.timestamp).getTime();
+                    if (isNaN(t)) return true; /* unparseable timestamp — keep */
+                    return window._campaignStartedAt ? t >= window._campaignStartedAt : true;
+                });
 
                 if (events.length > 0) {
                     /* Auto-advance S2→S3 only when a campaign has actually been launched */
@@ -1352,14 +1360,19 @@
                             purchases++;
                         }
 
-                        if (event.status === 'Sent') {
-                            /* Track per-channel counts for display */
-                            if (channel === 'WhatsApp') countWhatsApp++;
-                            else if (channel === 'SMS') countSMS++;
-                            else if (channel === 'Email') countEmail++;
-                            /* Track unique customers — customer_id if available, else message_id */
-                            const customerId = event.customer_id || event.message_id;
-                            if (customerId) uniqueCustomerIds.add(String(customerId));
+                        /* Backend does not emit "Sent" events — count channel reach
+                           from any event per message (each message_id = one customer dispatch).
+                           Use a Set of message_ids to avoid counting the same message twice
+                           across multiple status updates (Delivered → Opened → Clicked). */
+                        const customerId = event.customer_id || event.message_id;
+                        if (customerId) {
+                            if (!uniqueCustomerIds.has(String(customerId))) {
+                                uniqueCustomerIds.add(String(customerId));
+                                /* Count channel breakdown on first-seen only */
+                                if (channel === 'WhatsApp') countWhatsApp++;
+                                else if (channel === 'SMS') countSMS++;
+                                else if (channel === 'Email') countEmail++;
+                            }
                         }
 
                         if (event.status === 'Delivered' || event.status === 'Opened' ||
@@ -1528,6 +1541,7 @@
             /* Reset execution guard */
             campaignLaunched = false;
             window._campaignStartedAt = null;
+            window._activeCampaignId = null; /* reset campaign filter */
             window._resultsShown = false; /* Bug #11 fix: clear explicit flag */
             _lastWhyNotFetch = 0; /* Bug #7 fix: reset throttle timer */
 
@@ -1702,6 +1716,11 @@
                     body: JSON.stringify({ message: text })
                 });
                 const data = await response.json();
+
+                /* Capture campaign_id if backend returns one — used by theater
+                   to isolate events for THIS campaign run (no timestamp on events) */
+                if (data.campaign_id) window._activeCampaignId = data.campaign_id;
+                if (data.campaignId) window._activeCampaignId = data.campaignId;
 
                 /* 4. Remove typing indicator */
                 document.getElementById(typingId).remove();
