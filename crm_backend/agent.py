@@ -531,4 +531,4 @@ def ask_aria(user_prompt: str) -> str:
         
     except Exception as e:
         print(f"⚠️ API Error Encountered: {e}")
-        return "ARIA is temporarily offline due to an API connectivity issue. All customer data and campaign tools remain available. Please try again in a moment."
+        return f"ARIA is temporarily offline due to an API connectivity issue. All customer data and campaign tools remain available. Please try again in a moment.{str(e)}"
