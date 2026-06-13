@@ -9,6 +9,8 @@ from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, select, func
 from typing import List
 from pydantic import BaseModel
+from fastapi import FastAPI, Request
+from fastapi.responses import Response
 
 from crm_backend.database import engine, get_session, create_db_and_tables
 from crm_backend.models import Customer, Order, Campaign, MessageLog, Opportunity, CampaignMemory
@@ -30,6 +32,14 @@ async def lifespan(app: FastAPI):
 
 # Consolidated FastAPI application instantiation with standard single lifespan initialization
 app = FastAPI(title="NEXUS AI-Native CRM Brain", lifespan=lifespan)
+
+
+# Add this right below it:
+@app.middleware("http")
+async def handle_head_requests(request: Request, call_next):
+    if request.method == "HEAD":
+        return Response(status_code=200)
+    return await call_next(request)
 
 # ==========================================
 #      OPPORTUNITY REFRESH HELPER (DRY)

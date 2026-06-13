@@ -7,9 +7,18 @@ import httpx
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from typing import List
+from fastapi import Request
+from fastapi.responses import Response
 
 app = FastAPI(title="NEXUS External Channel Provider")
 
+
+# Add this right below it:
+@app.middleware("http")
+async def handle_head_requests(request: Request, call_next):
+    if request.method == "HEAD":
+        return Response(status_code=200)
+    return await call_next(request)
 @app.get("/")
 def read_root():
     return {"status": "NEXUS Channel Service Provider is Online and listening for dispatches."}
