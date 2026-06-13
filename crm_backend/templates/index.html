@@ -1312,7 +1312,7 @@
                     ? `?campaign_id=${window._activeCampaignId}`
                     : '';
                 const response = await fetch(`/api/theater/stream${campaignParam}`);
-                
+
                 const data = await response.json();
 
                 /* Bug #4 fix: safely extract events array regardless of API response shape */
@@ -1346,27 +1346,25 @@
 
                 if (events.length > 0) {
                     /* Auto-advance S2→S3 only when a campaign has actually been launched */
-                    if (currentState === 2 && campaignLaunched) {
-                        setState(3);
-                        fetchWhyNotData();
-                    }
 
                     theaterEmptyState.classList.add('hidden');
                     liveEventsContainer.classList.remove('hidden');
 
-                    
+
                     /* Bug #5 fix: track unique customer IDs to avoid double-counting
                        customers who receive messages on multiple channels */
                     const uniqueCustomerIds = new Set();
-                   
+
 
                     events.forEach(event => {
                         const variant = event.variant || 'A';
                         const channel = event.channel || 'WhatsApp';
 
-                        if (event.status === 'Purchased' && event.revenue) {
-                            accumulatedRevenue += parseFloat(event.revenue);
+                        if (event.status === 'Purchased') {
                             purchases++;
+                            if (event.revenue) {
+                                accumulatedRevenue += parseFloat(event.revenue);
+                            }
                         }
 
                         /* Backend does not emit "Sent" events — count channel reach
