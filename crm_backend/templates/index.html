@@ -2,374 +2,1277 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEXUS | AI-Native CRM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | AI-Native CRM</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-<style>
-:root{
-    /* Base */
-    --bg:#050505;
-    --surface:#0D0D0D;
-    --card:#121212;
-    --card-elevated:#171717;
+    <style>
+        /* =====================================================
+   DESIGN TOKENS
+   ===================================================== */
+        :root {
+            --bg: #050505;
+            --surface: #0D0D0D;
+            --card: #121212;
+            --card-elevated: #171717;
+            --revenue: #00E676;
+            --revenue-dark: #00C853;
+            --ai: #4FD1C5;
+            --vip: #D6A756;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --text-primary: #FAFAFA;
+            --text-secondary: #A3A3A3;
+            --text-muted: #6B7280;
+            --transition-speed: 0.35s;
+        }
 
-    /* Semantic Colors */
-    --revenue:#00E676;
-    --revenue-dark:#00C853;
-    --ai:#4FD1C5;
-    --vip:#D6A756;
-    --warning:#F59E0B;
-    --danger:#EF4444;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* Text */
-    --text-primary:#FAFAFA;
-    --text-secondary:#A3A3A3;
-    --text-muted:#6B7280;
-}
+        body {
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: Inter, system-ui, sans-serif;
+        }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+        /* =====================================================
+   HEADER
+   ===================================================== */
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+            position: relative;
+            z-index: 20;
+        }
 
-body{
-    background:var(--bg);
-    color:var(--text-primary);
-    font-family:Inter,system-ui,sans-serif;
-}
+        /* =====================================================
+   LOGO
+   ===================================================== */
+        .nexus-gradient {
+            background: linear-gradient(90deg, var(--vip), #F2D28B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-/* Header */
-.header{
-    background:var(--surface);
-    border-bottom:1px solid rgba(255,255,255,.05);
-}
+        /* =====================================================
+   CARDS
+   ===================================================== */
+        .card {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, .05);
+            border-radius: 28px;
+            transition: .25s ease;
+        }
 
-/* Logo */
-.nexus-gradient{
-    background:linear-gradient(90deg, var(--vip), #F2D28B);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-}
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, .08);
+            background: var(--card-elevated);
+        }
 
-/* Cards */
-.card{
-    background:var(--card);
-    border:1px solid rgba(255,255,255,.05);
-    border-radius:28px;
-    transition:.25s ease;
-}
+        /* Dynamic Border Accents */
+        .opportunity-vip {
+            border-left: 4px solid var(--vip);
+        }
 
-.card:hover{
-    transform:translateY(-2px);
-    border-color:rgba(255,255,255,.08);
-    background:var(--card-elevated);
-}
+        .opportunity-revenue {
+            border-left: 4px solid var(--revenue);
+        }
 
-/* Dynamic Border Accents */
-.opportunity-vip { border-left:4px solid var(--vip); }
-.opportunity-revenue { border-left:4px solid var(--revenue); }
-.opportunity-ai { border-left:4px solid var(--ai); }
-.opportunity-risk { border-left:4px solid var(--warning); }
+        .opportunity-ai {
+            border-left: 4px solid var(--ai);
+        }
 
-/* Dynamic Badges */
-.vip-pill{ background:rgba(214,167,86,.10); color:var(--vip); border:1px solid rgba(214,167,86,.20); }
-.revenue-pill{ background:rgba(0,230,118,.10); color:var(--revenue); border:1px solid rgba(0,230,118,.20); }
-.ai-pill{ background:rgba(79,209,197,.10); color:var(--ai); border:1px solid rgba(79,209,197,.20); }
-.warning-pill{ background:rgba(245,158,11,.10); color:var(--warning); border:1px solid rgba(245,158,11,.20); }
+        .opportunity-risk {
+            border-left: 4px solid var(--warning);
+        }
 
-/* Revenue Amount */
-.revenue-value{ color:var(--revenue); font-weight:700; }
+        /* Dynamic Badges */
+        .vip-pill {
+            background: rgba(214, 167, 86, .10);
+            color: var(--vip);
+            border: 1px solid rgba(214, 167, 86, .20);
+        }
 
-/* CTA Button */
-.action-btn{
-    background:linear-gradient(135deg, var(--revenue), var(--revenue-dark));
-    color:#02110A;
-    font-weight:700;
-    box-shadow:0 8px 24px rgba(0,230,118,.08);
-    transition:.25s ease;
-}
-.action-btn:hover{ transform:translateY(-1px); }
+        .revenue-pill {
+            background: rgba(0, 230, 118, .10);
+            color: var(--revenue);
+            border: 1px solid rgba(0, 230, 118, .20);
+        }
 
-/* ARIA Copilot Styled Elements */
-.aria-section{
-    background:linear-gradient(180deg, rgba(79,209,197,.12), rgba(79,209,197,.03));
-}
-.aria-message{
-    background:rgba(79,209,197,.05);
-    border:1px solid rgba(79,209,197,.15);
-}
-.aria-message h3 {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: #4FD1C5;
-    margin-top: 1rem;
-    margin-bottom: 0.75rem;
-    font-weight: 700;
-}
-.aria-message ul {
-    list-style-type: none;
-    padding-left: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-.aria-message li {
-    position: relative;
-    padding-left: 1.25rem;
-    color: var(--text-secondary);
-}
-.aria-message li::before {
-    content: "•";
-    position: absolute;
-    left: 0;
-    color: #4FD1C5;
-    font-weight: bold;
-}
+        .ai-pill {
+            background: rgba(79, 209, 197, .10);
+            color: var(--ai);
+            border: 1px solid rgba(79, 209, 197, .20);
+        }
 
-/* Input */
-.nexus-input{ background:var(--surface); border:1px solid rgba(255,255,255,.08); }
-.nexus-input:focus{ border-color:var(--ai); outline:none; }
+        .warning-pill {
+            background: rgba(245, 158, 11, .10);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, .20);
+        }
 
-/* Theater */
-.theater{
-    background:radial-gradient(circle at center, rgba(0,230,118,.03), transparent 70%);
-    border:1px solid rgba(255,255,255,.05);
-}
+        /* Revenue */
+        .revenue-value {
+            color: var(--revenue);
+            font-weight: 700;
+        }
 
-/* Text Utilities */
-.text-secondary{ color:var(--text-secondary); }
-.text-muted{ color:var(--text-muted); }
+        /* CTA */
+        .action-btn {
+            background: linear-gradient(135deg, var(--revenue), var(--revenue-dark));
+            color: #02110A;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(0, 230, 118, .08);
+            transition: .25s ease;
+        }
 
-/* Scrollbar */
-.hidden-scrollbar::-webkit-scrollbar{ display:none; }
-.hidden-scrollbar{ scrollbar-width:none; }
-</style>
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        /* =====================================================
+   ARIA
+   ===================================================== */
+        .aria-section {
+            background: linear-gradient(180deg, rgba(79, 209, 197, .12), rgba(79, 209, 197, .03));
+        }
+
+        .aria-message {
+            background: rgba(79, 209, 197, .05);
+            border: 1px solid rgba(79, 209, 197, .15);
+        }
+
+        .aria-message h3 {
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .15em;
+            color: #4FD1C5;
+            margin-top: 1rem;
+            margin-bottom: .75rem;
+            font-weight: 700;
+        }
+
+        .aria-message ul {
+            list-style-type: none;
+            padding-left: 0;
+            display: flex;
+            flex-direction: column;
+            gap: .35rem;
+        }
+
+        .aria-message li {
+            position: relative;
+            padding-left: 1.25rem;
+            color: var(--text-secondary);
+        }
+
+        .aria-message li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #4FD1C5;
+            font-weight: bold;
+        }
+
+        /* Input */
+        .nexus-input {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .nexus-input:focus {
+            border-color: var(--ai);
+            outline: none;
+        }
+
+        /* Theater */
+        .theater {
+            background: radial-gradient(circle at center, rgba(0, 230, 118, .03), transparent 70%);
+            border: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        /* Text Utilities */
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        /* Scrollbar */
+        .hidden-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hidden-scrollbar {
+            scrollbar-width: none;
+        }
+
+        /* =====================================================
+   STATE MACHINE — PANEL VISIBILITY
+   The body carries data-state="1|2|3|4".
+   Every panel is hidden by default; states reveal them.
+   ===================================================== */
+
+        /* All workflow panels hidden until a state activates them */
+        #panel-discovery,
+        #panel-planning,
+        #panel-aria,
+        #panel-theater,
+        #panel-results {
+            display: none;
+        }
+
+        /* --- STATE 1: Discovery --- */
+        body[data-state="1"] #panel-discovery {
+            display: flex;
+        }
+
+        body[data-state="1"] #panel-aria {
+            display: flex;
+        }
+
+        /* --- STATE 2: Planning --- */
+        body[data-state="2"] #panel-planning {
+            display: flex;
+        }
+
+        body[data-state="2"] #panel-aria {
+            display: flex;
+        }
+
+        /* --- STATE 3: Theater --- */
+        body[data-state="3"] #panel-theater {
+            display: flex;
+        }
+
+        /* --- STATE 4: Results --- */
+        body[data-state="4"] #panel-results {
+            display: flex;
+        }
+
+        /* =====================================================
+   LAYOUT WRAPPERS PER STATE
+   ===================================================== */
+        #workflow-root {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* States 1 & 2 use a two-column split */
+        body[data-state="1"] #workflow-root,
+        body[data-state="2"] #workflow-root {
+            flex-direction: row;
+        }
+
+        /* States 3 & 4 use full-width single column */
+        body[data-state="3"] #workflow-root,
+        body[data-state="4"] #workflow-root {
+            flex-direction: column;
+        }
+
+        /* Left column (discovery, planning) */
+        #col-left {
+            width: 50%;
+            border-right: 1px solid rgba(255, 255, 255, .05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        body[data-state="3"] #col-left,
+        body[data-state="4"] #col-left {
+            display: none;
+        }
+
+        /* Right column (ARIA in states 1 & 2) */
+        #col-right {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        body[data-state="3"] #col-right,
+        body[data-state="4"] #col-right {
+            width: 100%;
+        }
+
+        /* =====================================================
+   HEADER STATE INDICATOR
+   ===================================================== */
+        .state-crumb {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .state-crumb.active {
+            display: flex;
+        }
+
+        .state-crumb .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .state-crumb.s-discovery .dot {
+            background: var(--ai);
+        }
+
+        .state-crumb.s-planning .dot {
+            background: var(--vip);
+        }
+
+        .state-crumb.s-theater .dot {
+            background: var(--revenue);
+            animation: pulse-dot 1s infinite;
+        }
+
+        .state-crumb.s-results .dot {
+            background: var(--revenue);
+        }
+
+        .state-crumb.s-discovery {
+            color: var(--ai);
+        }
+
+        .state-crumb.s-planning {
+            color: var(--vip);
+        }
+
+        .state-crumb.s-theater {
+            color: var(--revenue);
+        }
+
+        .state-crumb.s-results {
+            color: var(--revenue);
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(1.4);
+            }
+        }
+
+        /* Show correct crumb per state */
+        body[data-state="1"] .state-crumb.s-discovery {
+            display: flex;
+        }
+
+        body[data-state="2"] .state-crumb.s-planning {
+            display: flex;
+        }
+
+        body[data-state="3"] .state-crumb.s-theater {
+            display: flex;
+        }
+
+        body[data-state="4"] .state-crumb.s-results {
+            display: flex;
+        }
+
+        /* =====================================================
+   PANEL: DISCOVERY (State 1 left column)
+   ===================================================== */
+        #panel-discovery {
+            flex-direction: column;
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 24px;
+        }
+
+        /* =====================================================
+   PANEL: ARIA COPILOT (States 1 & 2 right column)
+   ===================================================== */
+        #panel-aria {
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* =====================================================
+   PANEL: PLANNING (State 2 left column)
+   ===================================================== */
+        #panel-planning {
+            flex-direction: column;
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 24px;
+            gap: 20px;
+        }
+
+        /* Planning card */
+        .planning-stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .planning-stat {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, .06);
+            border-radius: 20px;
+            padding: 18px 20px;
+        }
+
+        .planning-stat .stat-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .planning-stat .stat-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .planning-stat.stat-revenue .stat-value {
+            color: var(--revenue);
+        }
+
+        .planning-stat.stat-roi .stat-value {
+            color: var(--ai);
+        }
+
+        /* Variant preview cards */
+        .variant-card {
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .variant-card.variant-a {
+            background: rgba(59, 130, 246, .05);
+            border-color: rgba(59, 130, 246, .15);
+        }
+
+        .variant-card.variant-b {
+            background: rgba(168, 85, 247, .05);
+            border-color: rgba(168, 85, 247, .15);
+        }
+
+        .variant-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .variant-a .variant-label {
+            color: #60a5fa;
+        }
+
+        .variant-b .variant-label {
+            color: #c084fc;
+        }
+
+        .variant-body {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        /* Launch button */
+        .launch-btn {
+            background: linear-gradient(135deg, var(--revenue), var(--revenue-dark));
+            color: #02110A;
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+            border: none;
+            border-radius: 16px;
+            padding: 18px 32px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 12px 40px rgba(0, 230, 118, .2);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .launch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 48px rgba(0, 230, 118, .3);
+        }
+
+        .launch-btn:active {
+            transform: translateY(0);
+        }
+
+        /* =====================================================
+   PANEL: THEATER (State 3 — full width)
+   ===================================================== */
+        #panel-theater {
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            padding: 28px 32px;
+            gap: 16px;
+        }
+
+        .theater-metrics-row {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .theater-revenue-block {
+            background: rgba(0, 230, 118, .07);
+            border: 1px solid rgba(0, 230, 118, .18);
+            border-radius: 20px;
+            padding: 14px 22px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .theater-variant-block {
+            border-radius: 20px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theater-variant-block.va {
+            background: rgba(59, 130, 246, .07);
+            border: 1px solid rgba(59, 130, 246, .18);
+            color: #60a5fa;
+        }
+
+        .theater-variant-block.vb {
+            background: rgba(168, 85, 247, .07);
+            border: 1px solid rgba(168, 85, 247, .18);
+            color: #c084fc;
+        }
+
+        .theater-meta-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .theater-channel-block,
+        .theater-whynot-block {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, .05);
+            border-radius: 20px;
+            padding: 16px 20px;
+        }
+
+        /* The actual theater screen */
+        #theater-screen-wrapper {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+        }
+
+        /* =====================================================
+   PANEL: RESULTS (State 4 — full width)
+   ===================================================== */
+        #panel-results {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 48px;
+            gap: 28px;
+        }
+
+        .results-headline {
+            text-align: center;
+            max-width: 560px;
+        }
+
+        .results-headline .eyebrow {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--revenue);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .results-headline h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.25;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            width: 100%;
+            max-width: 860px;
+        }
+
+        .result-stat {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, .06);
+            border-radius: 22px;
+            padding: 22px 20px;
+            text-align: center;
+        }
+
+        .result-stat .rs-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .result-stat .rs-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .result-stat.rs-revenue .rs-value {
+            color: var(--revenue);
+        }
+
+        .result-stat.rs-winner .rs-value {
+            color: var(--ai);
+        }
+
+        .winning-variant-banner {
+            width: 100%;
+            max-width: 860px;
+            border-radius: 22px;
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .winning-variant-banner.winner-a {
+            background: linear-gradient(135deg, rgba(59, 130, 246, .12), rgba(59, 130, 246, .04));
+            border: 1px solid rgba(59, 130, 246, .25);
+        }
+
+        .winning-variant-banner.winner-b {
+            background: linear-gradient(135deg, rgba(168, 85, 247, .12), rgba(168, 85, 247, .04));
+            border: 1px solid rgba(168, 85, 247, .25);
+        }
+
+        .winner-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 8px;
+        }
+
+        .winner-a .winner-badge {
+            background: rgba(59, 130, 246, .2);
+            color: #60a5fa;
+        }
+
+        .winner-b .winner-badge {
+            background: rgba(168, 85, 247, .2);
+            color: #c084fc;
+        }
+
+        /* Run Another Campaign button */
+        .run-again-btn {
+            background: transparent;
+            border: 1px solid rgba(79, 209, 197, .35);
+            color: var(--ai);
+            font-size: 0.875rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            border-radius: 14px;
+            padding: 14px 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background .2s ease, border-color .2s ease, transform .2s ease;
+        }
+
+        .run-again-btn:hover {
+            background: rgba(79, 209, 197, .08);
+            border-color: rgba(79, 209, 197, .6);
+            transform: translateY(-1px);
+        }
+
+        /* =====================================================
+   PLANNING PANEL — selected opportunity header
+   ===================================================== */
+        .selected-opp-header {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, .06);
+            border-radius: 22px;
+            padding: 20px 24px;
+        }
+
+        .selected-opp-header .opp-eyebrow {
+            font-size: 0.6rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .selected-opp-header h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.35;
+        }
+
+        /* =====================================================
+   ANIMATIONS
+   ===================================================== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp .3s ease-out forwards;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        body[data-state="1"] #panel-discovery {
+            animation: slideInLeft .35s ease-out;
+        }
+
+        body[data-state="1"] #panel-aria {
+            animation: slideInRight .35s ease-out;
+        }
+
+        body[data-state="2"] #panel-planning {
+            animation: slideInLeft .35s ease-out;
+        }
+
+        body[data-state="3"] #panel-theater {
+            animation: fadeIn .4s ease-out;
+        }
+
+        body[data-state="4"] #panel-results {
+            animation: fadeIn .4s ease-out;
+        }
+    </style>
 </head>
 
-<body class="h-screen flex flex-col overflow-hidden">
+<body class="h-screen flex flex-col overflow-hidden" data-state="1">
 
-<header class="header px-6 py-4 flex justify-between items-center z-10">
-    <div class="flex items-center gap-3">
-        <i class="fa-solid fa-brain text-[#4FD1C5] text-2xl"></i>
-        <h1 class="text-2xl font-bold tracking-wider">
-            NEX<span class="nexus-gradient">US</span>
-        </h1>
-    </div>
-    <div class="flex items-center gap-4 text-sm text-secondary">
-        <!-- Glowing Auto-Pilot Button -->
-        <button onclick="triggerAutoPilot()" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 border border-[#4FD1C5]/30 animate-pulse" style="background: rgba(79, 209, 197, 0.15); color: #4FD1C5; box-shadow: 0 0 12px rgba(79, 209, 197, 0.2);">
-            <i class="fa-solid fa-bolt"></i> Auto-Pilot
-        </button>
-        <span class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></div>
-            Live Data Sync
-        </span>
-        <span>Manager: Aditya</span>
-    </div>
-</header>
+    <!-- ===================================================
+     HEADER
+     =================================================== -->
+    <header class="header px-6 py-4 flex justify-between items-center z-10 flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-brain text-[#4FD1C5] text-2xl"></i>
+                <h1 class="text-2xl font-bold tracking-wider">
+                    NEX<span class="nexus-gradient">US</span>
+                </h1>
+            </div>
+            <!-- State breadcrumb -->
+            <div class="flex items-center gap-3 ml-4 pl-4" style="border-left:1px solid rgba(255,255,255,.07)">
+                <span class="state-crumb s-discovery"><span class="dot"></span>Discovery</span>
+                <span class="state-crumb s-planning"><span class="dot"></span>Campaign Planning</span>
+                <span class="state-crumb s-theater"><span class="dot"></span>Live Execution</span>
+                <span class="state-crumb s-results"><span class="dot"></span>Results</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 text-sm text-secondary">
+            <button onclick="triggerAutoPilot()"
+                class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 border border-[#4FD1C5]/30 animate-pulse"
+                style="background:rgba(79,209,197,.15);color:#4FD1C5;box-shadow:0 0 12px rgba(79,209,197,.2);">
+                <i class="fa-solid fa-bolt"></i> Auto-Pilot
+            </button>
+            <span class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></div>
+                Live Data Sync
+            </span>
+            <span>Manager: Aditya</span>
+        </div>
+    </header>
 
-<main class="flex flex-1 overflow-hidden">
+    <!-- ===================================================
+     WORKFLOW ROOT — flex container holding all panels
+     =================================================== -->
+    <div id="workflow-root" class="flex-1 overflow-hidden">
 
-    <section class="w-1/2 border-r border-white/5 flex flex-col">
+        <!-- LEFT COLUMN — visible in states 1 & 2 -->
+        <div id="col-left" class="flex flex-col overflow-hidden">
 
-        <div class="h-1/2 overflow-y-auto hidden-scrollbar p-6">
-            <h2 class="text-xs uppercase tracking-[0.25em] text-muted mb-5">
-                Proactive Opportunities
-            </h2>
-            
-            <div class="space-y-5">
-                {% for opp in opportunities %}
-                
-                {% set card_class = "opportunity-ai" %}
-                {% set pill_class = "ai-pill" %}
-                {% set pill_icon = "🤖" %}
-                {% set pill_text = "ARIA Recommendation" %}
-                
-                {% if "VIP" in opp.title or "lapse" in opp.title %}
+            <!-- ─────────────────────────────────────────
+             PANEL: DISCOVERY (State 1)
+             ───────────────────────────────────────── -->
+            <div id="panel-discovery" class="hidden-scrollbar">
+                <h2 class="text-xs uppercase tracking-[0.25em] text-muted mb-5">
+                    Proactive Opportunities
+                </h2>
+                <div class="space-y-5">
+                    {% for opp in opportunities %}
+
+                    {% set card_class = "opportunity-ai" %}
+                    {% set pill_class = "ai-pill" %}
+                    {% set pill_icon = "🤖" %}
+                    {% set pill_text = "ARIA Recommendation" %}
+
+                    {% if "VIP" in opp.title or "lapse" in opp.title %}
                     {% set card_class = "opportunity-vip" %}
                     {% set pill_class = "vip-pill" %}
                     {% set pill_icon = "👑" %}
                     {% set pill_text = "VIP Opportunity" %}
-                {% elif "Hunters" in opp.title or "Upsell" in opp.title %}
+                    {% elif "Hunters" in opp.title or "Upsell" in opp.title %}
                     {% set card_class = "opportunity-revenue" %}
                     {% set pill_class = "revenue-pill" %}
                     {% set pill_icon = "📈" %}
                     {% set pill_text = "Revenue Opportunity" %}
-                {% elif "Churn" in opp.title or "Risk" in opp.title %}
+                    {% elif "Churn" in opp.title or "Risk" in opp.title %}
                     {% set card_class = "opportunity-risk" %}
                     {% set pill_class = "warning-pill" %}
                     {% set pill_icon = "⚠" %}
                     {% set pill_text = "Churn Alert" %}
-                {% endif %}
+                    {% endif %}
 
-                <div class="card {{ card_class }} p-5 cursor-pointer">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <div class="{{ pill_class }} text-xs px-3 py-1 rounded-full w-fit mb-3 font-semibold">
-                                {{ pill_icon }} {{ pill_text }}
+                    <div class="card {{ card_class }} p-5 cursor-pointer" data-opp-title="{{ opp.title }}"
+                        data-opp-audience="{{ opp.customer_count }}" data-opp-revenue="{{ opp.potential_revenue }}">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="{{ pill_class }} text-xs px-3 py-1 rounded-full w-fit mb-3 font-semibold">
+                                    {{ pill_icon }} {{ pill_text }}
+                                </div>
+                                <h3 class="text-lg font-semibold text-white">
+                                    {{ opp.title }}
+                                </h3>
                             </div>
-                            <h3 class="text-lg font-semibold text-white">
-                                {{ opp.title }}
-                            </h3>
+                            <button
+                                onclick="triggerAria('{{ opp.title }}', {{ opp.customer_count }}, {{ opp.potential_revenue }})"
+                                class="action-btn px-5 py-2 rounded-full text-sm flex-shrink-0">
+                                Act Now
+                            </button>
                         </div>
-                        <button onclick="triggerAria('{{ opp.title }}')" class="action-btn px-5 py-2 rounded-full text-sm">
-                            Act Now
-                        </button>
+                        <p class="text-secondary text-sm mb-4 leading-relaxed">
+                            {{ opp.description }}
+                        </p>
+                        <div
+                            class="flex justify-between items-center text-sm font-medium border-t border-white/5 pt-4 mt-2">
+                            <span class="text-secondary">
+                                Audience: <span class="text-white">{{ opp.customer_count }}</span>
+                            </span>
+                            <span class="revenue-value text-base">
+                                ₹{{ "{:,.2f}".format(opp.potential_revenue) }}
+                            </span>
+                        </div>
                     </div>
-
-                    <p class="text-secondary text-sm mb-4 leading-relaxed">
-                        {{ opp.description }}
-                    </p>
-
-                    <div class="flex justify-between items-center text-sm font-medium border-t border-white/5 pt-4 mt-2">
-                        <span class="text-secondary">
-                            Audience: <span class="text-white">{{ opp.customer_count }}</span>
-                        </span>
-                        <span class="revenue-value text-base">
-                            ₹{{ "{:,.2f}".format(opp.potential_revenue) }}
-                        </span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="h-1/2 aria-section p-6 flex flex-col relative border-t border-[#4FD1C5]/10">
-            <h2 class="text-xs uppercase tracking-[0.25em] text-[#4FD1C5] mb-5">
-                ARIA Agent Copilot
-            </h2>
-
-            <div class="flex-1 overflow-y-auto space-y-4 hidden-scrollbar pr-2" id="chat-window">
-                <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%]">
-                    <div class="flex items-center gap-2 mb-3">
-                        <i class="fa-solid fa-robot text-[#4FD1C5]"></i>
-                        <span class="font-bold text-[#4FD1C5] tracking-wide">ARIA</span>
-                    </div>
-                    <p class="text-secondary text-sm leading-relaxed">
-                        I've analyzed customer behavior and surfaced opportunities with the highest projected ROI above. Click an opportunity card or instruct me to build a campaign strategy below.
-                    </p>
+                    {% endfor %}
                 </div>
             </div>
+            <!-- /panel-discovery -->
 
-            <div class="relative mt-4">
-                <input
-                    type="text"
-                    id="ai-prompt"
-                    placeholder="e.g. Target Lapsed VIPs with a win-back offer..."
-                    class="nexus-input w-full rounded-2xl py-4 pl-5 pr-14 text-white text-sm"
-                >
-                <button id="send-btn" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-80 transition" style="background:#4FD1C5;color:#04110F;">
-                    <i class="fa-solid fa-paper-plane text-sm"></i>
+            <!-- ─────────────────────────────────────────
+             PANEL: PLANNING (State 2)
+             ───────────────────────────────────────── -->
+            <div id="panel-planning" class="hidden-scrollbar">
+
+                <!-- Selected opportunity header -->
+                <div class="selected-opp-header">
+                    <p class="opp-eyebrow">Selected Opportunity</p>
+                    <h3 id="planning-opp-title">—</h3>
+                </div>
+
+                <!-- Stats grid -->
+                <div class="planning-stat-grid">
+                    <div class="planning-stat">
+                        <span class="stat-label">Audience Size</span>
+                        <span class="stat-value" id="planning-audience">—</span>
+                    </div>
+                    <div class="planning-stat stat-revenue">
+                        <span class="stat-label">Revenue at Risk</span>
+                        <span class="stat-value" id="planning-revenue">—</span>
+                    </div>
+                    <div class="planning-stat stat-roi" style="grid-column:1/-1">
+                        <span class="stat-label">Expected ROI</span>
+                        <span class="stat-value" id="planning-roi">Calculating via ARIA →</span>
+                    </div>
+                </div>
+
+                <!-- Variant previews -->
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <div class="variant-card variant-a">
+                        <p class="variant-label">⚡ Variant A — FOMO</p>
+                        <p class="variant-body" id="variant-a-preview">ARIA is drafting Variant A…</p>
+                    </div>
+                    <div class="variant-card variant-b">
+                        <p class="variant-label">👑 Variant B — Reward</p>
+                        <p class="variant-body" id="variant-b-preview">ARIA is drafting Variant B…</p>
+                    </div>
+                </div>
+
+                <!-- Launch button -->
+                <button class="launch-btn" id="launch-campaign-btn" onclick="launchCampaign()">
+                    <i class="fa-solid fa-rocket"></i>
+                    Launch Campaign
                 </button>
+
             </div>
+            <!-- /panel-planning -->
+
         </div>
+        <!-- /col-left -->
 
-    </section>
+        <!-- RIGHT COLUMN — ARIA visible in states 1 & 2; Theater/Results in 3 & 4 -->
+        <div id="col-right" class="flex flex-col overflow-hidden">
 
-    <section class="w-1/2 p-6 flex flex-col bg-[#050505] overflow-y-auto hidden-scrollbar gap-4">
-        <div class="flex flex-col gap-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xs uppercase tracking-[0.25em] text-muted">
-                    Live Campaign Theater
+            <!-- ─────────────────────────────────────────
+             PANEL: ARIA COPILOT (States 1 & 2)
+             ───────────────────────────────────────── -->
+            <div id="panel-aria" class="aria-section flex-1 p-6 flex flex-col relative border-l border-[#4FD1C5]/10"
+                style="overflow:hidden;">
+                <h2 class="text-xs uppercase tracking-[0.25em] text-[#4FD1C5] mb-5 flex-shrink-0">
+                    ARIA Agent Copilot
                 </h2>
-                
-                <!-- Live Revenue Display Panel -->
-                <div class="px-5 py-2 rounded-2xl bg-[#00E676]/10 border border-[#00E676]/20 flex items-center gap-3">
-                    <i class="fa-solid fa-coins text-[#00E676] text-lg"></i>
-                    <div>
-                        <span class="text-[10px] text-muted uppercase tracking-wider block leading-none">Revenue Influenced</span>
-                        <span id="live-revenue-counter" class="text-xl font-extrabold" style="color: #00E676;">₹0.00</span>
+                <div class="flex-1 overflow-y-auto space-y-4 hidden-scrollbar pr-2" id="chat-window">
+                    <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%]">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-robot text-[#4FD1C5]"></i>
+                            <span class="font-bold text-[#4FD1C5] tracking-wide">ARIA</span>
+                        </div>
+                        <p class="text-secondary text-sm leading-relaxed">
+                            I've analyzed customer behavior and surfaced opportunities with the highest projected ROI.
+                            Click an opportunity card or instruct me to build a campaign strategy below.
+                        </p>
                     </div>
                 </div>
+                <div class="relative mt-4 flex-shrink-0">
+                    <input type="text" id="ai-prompt" placeholder="e.g. Target Lapsed VIPs with a win-back offer..."
+                        class="nexus-input w-full rounded-2xl py-4 pl-5 pr-14 text-white text-sm">
+                    <button id="send-btn"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-80 transition"
+                        style="background:#4FD1C5;color:#04110F;">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
             </div>
+            <!-- /panel-aria -->
 
-            <!-- Live A/B Testing Scoreboard -->
-            <div class="flex gap-4">
-                <div class="flex-1 px-4 py-3 rounded-2xl bg-blue-500/10 border border-blue-400/20 text-blue-400 flex justify-between items-center">
-                    <div>
-                        <span class="text-[10px] text-blue-300/60 uppercase tracking-wider block leading-none mb-1">Variant A (FOMO)</span>
-                        <span id="ctr-a-display" class="text-lg font-bold">0.0% CTR</span>
+            <!-- ─────────────────────────────────────────
+             PANEL: THEATER (State 3)
+             ───────────────────────────────────────── -->
+            <div id="panel-theater" class="hidden-scrollbar">
+
+                <!-- Metrics row -->
+                <div class="theater-metrics-row">
+
+                    <!-- Revenue -->
+                    <div class="theater-revenue-block">
+                        <i class="fa-solid fa-coins text-[#00E676] text-2xl"></i>
+                        <div>
+                            <span
+                                style="font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-muted);display:block;margin-bottom:2px;">Revenue
+                                Influenced</span>
+                            <span id="live-revenue-counter" class="text-2xl font-extrabold"
+                                style="color:#00E676;">₹0.00</span>
+                        </div>
                     </div>
-                    <i class="fa-solid fa-bolt text-lg opacity-40"></i>
-                </div>
-                <div class="flex-1 px-4 py-3 rounded-2xl bg-purple-500/10 border border-purple-400/20 text-purple-400 flex justify-between items-center">
-                    <div>
-                        <span class="text-[10px] text-purple-300/60 uppercase tracking-wider block leading-none mb-1">Variant B (Reward)</span>
-                        <span id="ctr-b-display" class="text-lg font-bold">0.0% CTR</span>
+
+                    <!-- Variant A -->
+                    <div class="theater-variant-block va">
+                        <div>
+                            <span
+                                style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(147,197,253,.6);display:block;margin-bottom:3px;">Variant
+                                A (FOMO)</span>
+                            <span id="ctr-a-display" class="text-xl font-bold">0.0% CTR</span>
+                        </div>
+                        <i class="fa-solid fa-bolt text-xl opacity-40"></i>
                     </div>
-                    <i class="fa-solid fa-crown text-lg opacity-40"></i>
-                </div>
-            </div>
 
-            <!-- Live Channel Breakdown Summary Panel -->
-            <div class="px-5 py-3 rounded-2xl bg-[#0D0D0D] border border-white/5 flex justify-between items-center text-xs text-muted">
-                <span class="font-medium">Active Channels:</span>
-                <div class="flex gap-4">
-                    <span class="flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-[#25D366]"></i> WhatsApp: <span id="count-whatsapp" class="text-white font-bold">0</span></span>
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-message text-[#3B82F6]"></i> SMS: <span id="count-sms" class="text-white font-bold">0</span></span>
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-envelope text-[#F97316]"></i> Email: <span id="count-email" class="text-white font-bold">0</span></span>
+                    <!-- Variant B -->
+                    <div class="theater-variant-block vb">
+                        <div>
+                            <span
+                                style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(216,180,254,.6);display:block;margin-bottom:3px;">Variant
+                                B (Reward)</span>
+                            <span id="ctr-b-display" class="text-xl font-bold">0.0% CTR</span>
+                        </div>
+                        <i class="fa-solid fa-crown text-xl opacity-40"></i>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Live Why-Not Segment Comparison Scoreboard -->
-            <div class="px-5 py-4 rounded-2xl bg-[#0D0D0D] border border-white/5 flex flex-col gap-3">
-                <div class="flex justify-between items-center text-xs text-muted uppercase tracking-wider font-semibold">
-                    <span>⚖️ Why-Not ROI Scoreboard</span>
-                    <span class="text-[10px] text-teal-400 capitalize cursor-pointer flex items-center gap-1" onclick="fetchWhyNotData()">
-                        <i class="fa-solid fa-arrows-rotate"></i> Refresh
-                    </span>
+                <!-- Channel + Why-Not row -->
+                <div class="theater-meta-row">
+
+                    <!-- Channel Breakdown -->
+                    <div class="theater-channel-block">
+                        <p
+                            style="font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-muted);font-weight:700;margin-bottom:12px;">
+                            Active Channels</p>
+                        <div style="display:flex;flex-direction:column;gap:8px;font-size:.8rem;">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-[#25D366]"></i>
+                                <span class="text-secondary">WhatsApp</span>
+                                <span id="count-whatsapp" class="text-white font-bold ml-auto">0</span>
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-message text-[#3B82F6]"></i>
+                                <span class="text-secondary">SMS</span>
+                                <span id="count-sms" class="text-white font-bold ml-auto">0</span>
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-envelope text-[#F97316]"></i>
+                                <span class="text-secondary">Email</span>
+                                <span id="count-email" class="text-white font-bold ml-auto">0</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Why-Not Scoreboard -->
+                    <div class="theater-whynot-block">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <p
+                                style="font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-muted);font-weight:700;">
+                                ⚖️ Why-Not ROI</p>
+                            <span
+                                style="font-size:.6rem;color:#4FD1C5;cursor:pointer;display:flex;align-items:center;gap:4px;"
+                                onclick="fetchWhyNotData()">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                            </span>
+                        </div>
+                        <div class="flex flex-col gap-2 text-xs text-secondary" id="why-not-scoreboard-container">
+                            <!-- Dynamic -->
+                        </div>
+                    </div>
                 </div>
-                <div class="flex flex-col gap-2.5 text-xs text-secondary" id="why-not-scoreboard-container">
-                    <!-- Dynamic segments loaded in JS -->
+
+                <!-- Theater screen (existing IDs preserved) -->
+                <div id="theater-screen-wrapper" class="flex-1">
+                    <div id="theater-screen"
+                        class="theater rounded-[28px] flex items-center justify-center relative overflow-hidden"
+                        style="height:100%;min-height:280px;">
+                        <div id="theater-empty-state" class="text-center relative z-10">
+                            <i class="fa-solid fa-satellite-dish text-5xl text-muted mb-6 opacity-30"></i>
+                            <h3 class="text-lg font-semibold mb-2 text-white/80">Awaiting Pipeline Activation</h3>
+                            <p class="text-secondary text-sm max-w-xs mx-auto leading-relaxed">
+                                Agentic executions, message deployments, and live delivery states will render here.
+                            </p>
+                        </div>
+                        <div id="live-events-container"
+                            class="absolute inset-0 p-6 flex flex-col gap-3 hidden overflow-y-auto hidden-scrollbar">
+                        </div>
+                    </div>
                 </div>
+
             </div>
+            <!-- /panel-theater -->
+
+            <!-- ─────────────────────────────────────────
+             PANEL: RESULTS (State 4)
+             ───────────────────────────────────────── -->
+            <div id="panel-results" class="hidden-scrollbar">
+
+                <div class="results-headline">
+                    <p class="eyebrow">Campaign Complete</p>
+                    <h2>Executive Results Brief</h2>
+                </div>
+
+                <!-- Stats grid -->
+                <div class="results-grid">
+                    <div class="result-stat rs-revenue">
+                        <span class="rs-label">Revenue Influenced</span>
+                        <span class="rs-value" id="result-revenue">₹0</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="rs-label">Customers Reached</span>
+                        <span class="rs-value" id="result-reached">0</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="rs-label">Purchases</span>
+                        <span class="rs-value" id="result-purchases">0</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="rs-label">Variant A CTR</span>
+                        <span class="rs-value" id="result-ctr-a">0.0%</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="rs-label">Variant B CTR</span>
+                        <span class="rs-value" id="result-ctr-b">0.0%</span>
+                    </div>
+                    <div class="result-stat rs-winner">
+                        <span class="rs-label">CTR Lift</span>
+                        <span class="rs-value" id="result-ctr-lift">—</span>
+                    </div>
+                </div>
+
+                <!-- Winning variant banner -->
+                <div class="winning-variant-banner winner-a" id="result-winner-banner">
+                    <div>
+                        <p
+                            style="font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">
+                            Winning Variant</p>
+                        <p class="text-white font-bold text-base" id="result-winner-text">—</p>
+                    </div>
+                    <span class="winner-badge" id="result-winner-badge">Winner</span>
+                </div>
+
+                <!-- Run Another Campaign -->
+                <button class="run-again-btn" onclick="resetToDiscovery()">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Run Another Campaign
+                </button>
+
+            </div>
+            <!-- /panel-results -->
+
         </div>
+        <!-- /col-right -->
 
-        <div id="theater-screen" class="theater flex-1 rounded-[32px] flex items-center justify-center relative overflow-hidden" style="min-height: 400px;">
-            <div id="theater-empty-state" class="text-center relative z-10">
-                <i class="fa-solid fa-satellite-dish text-5xl text-muted mb-6 opacity-30"></i>
-                <h3 class="text-lg font-semibold mb-2 text-white/80">
-                    Awaiting Pipeline Activation
-                </h3>
-                <p class="text-secondary text-sm max-w-xs mx-auto leading-relaxed">
-                    Agentic executions, message deployments, and live delivery states will render here.
-                </p>
-            </div>
-            
-            <div id="live-events-container" class="absolute inset-0 p-8 flex flex-col gap-3 hidden overflow-y-auto hidden-scrollbar">
-            </div>
-        </div>
-    </section>
+    </div>
+    <!-- /workflow-root -->
 
-</main>
 
-<script>
-    const theaterEmptyState = document.getElementById('theater-empty-state');
-    const liveEventsContainer = document.getElementById('live-events-container');
-    const liveRevenueCounter = document.getElementById('live-revenue-counter');
-    let lastEventCount = 0;
+    <!-- ===================================================
+     SCRIPT BLOCK 1 — STATE MACHINE + THEATER + ARIA TRIGGERS
+     (Extends original script block 1; all original IDs & polling preserved)
+     =================================================== -->
+    <script>
 
-    async function fetchWhyNotData() {
-        try {
-            const response = await fetch('/api/analysis/why-not');
-            const data = await response.json();
-            const container = document.getElementById('why-not-scoreboard-container');
-            container.innerHTML = '';
-            
-            data.segments.forEach((seg, idx) => {
-                const isWinner = idx === 0;
-                const statusText = isWinner ? 'SELECTED' : 'EXCLUDED';
-                const pillClass = isWinner ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' : 'bg-white/5 text-muted border-white/10';
-                const barWidth = Math.min(100, Math.max(10, seg.expected_roi * 5));
-                
-                const rowHtml = `
+        /* ── State Machine ─────────────────────────────── */
+        let currentState = 1;
+
+        function setState(n) {
+            currentState = n;
+            document.body.setAttribute('data-state', String(n));
+        }
+
+        /* ── Active campaign context (set by triggerAria) ─ */
+        window._campaignContext = {
+            title: '',
+            audience: 0,
+            revenue: 0
+        };
+
+        /* ── Duplicate execution guard ─────────────────── */
+        /* Set to true the moment launchCampaign() fires.
+           Resets to false only in resetToDiscovery(). */
+        let campaignLaunched = false;
+
+        /* ── Theater polling variables (window-scoped for reset) ── */
+        window._theater = {
+            stablePolls: 0,
+            accumulatedRevenue: 0,
+            deliveredA: 0, clickedA: 0,
+            deliveredB: 0, clickedB: 0,
+            countWhatsApp: 0, countSMS: 0, countEmail: 0,
+            totalSent: 0,
+            purchases: 0
+        };
+
+        /* Keep original variable names working (used by existing code below) */
+        const theaterEmptyState = document.getElementById('theater-empty-state');
+        const liveEventsContainer = document.getElementById('live-events-container');
+        const liveRevenueCounter = document.getElementById('live-revenue-counter');
+        // lastEventCount kept as a local alias for compatibility
+        let lastEventCount = 0;
+
+        /* ── Why-Not Scoreboard ────────────────────────── */
+        async function fetchWhyNotData() {
+            try {
+                const response = await fetch('/api/analysis/why-not');
+                const data = await response.json();
+                const container = document.getElementById('why-not-scoreboard-container');
+                const segments = Array.isArray(data.segments) ? data.segments : [];
+                container.innerHTML = '';
+
+                segments.forEach((seg, idx) => {
+                    const isWinner = idx === 0;
+                    const statusText = isWinner ? 'SELECTED' : 'EXCLUDED';
+                    const pillClass = isWinner
+                        ? 'bg-teal-500/10 text-teal-400 border-teal-500/20'
+                        : 'bg-white/5 text-muted border-white/10';
+                    const barWidth = Math.min(100, Math.max(10, seg.expected_roi * 5));
+
+                    const rowHtml = `
                     <div class="flex flex-col gap-1.5 p-2 rounded-xl border border-white/5 bg-white/[0.02]">
                         <div class="flex justify-between items-center">
                             <span class="font-bold text-white">${seg.persona}</span>
@@ -377,211 +1280,444 @@ body{
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="flex-1 bg-white/5 h-2 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full ${isWinner ? 'bg-teal-400' : 'bg-[#6B7280]'}" style="width: ${barWidth}%;"></div>
+                                <div class="h-full rounded-full ${isWinner ? 'bg-teal-400' : 'bg-[#6B7280]'}" style="width:${barWidth}%;"></div>
                             </div>
                             <span class="font-mono text-[10px] text-muted">₹${(seg.revenue_at_risk / 1000).toFixed(1)}k Risk</span>
                         </div>
-                    </div>
-                `;
-                container.insertAdjacentHTML('beforeend', rowHtml);
-            });
-        } catch (error) {
-            console.error("Why-Not Scoreboard Fetch Error:", error);
-        }
-    }
-
-    async function pollLiveTheater() {
-        try {
-            const response = await fetch('/api/theater/stream');
-            const data = await response.json();
-            
-            if (data.events.length > 0) {
-                // Hide empty state and show the stream container
-                theaterEmptyState.classList.add('hidden');
-                liveEventsContainer.classList.remove('hidden');
-                
-                // Aggregate real-time metrics
-                let accumulatedRevenue = 0;
-                let deliveredA = 0, clickedA = 0;
-                let deliveredB = 0, clickedB = 0;
-                let countWhatsApp = 0, countSMS = 0, countEmail = 0;
-
-                data.events.forEach(event => {
-                    const variant = event.variant || 'A';
-                    const channel = event.channel || 'WhatsApp';
-                    
-                    if (event.status === 'Purchased' && event.revenue) {
-                        accumulatedRevenue += parseFloat(event.revenue);
-                    }
-
-                    // Count routed dispatch channels
-                    if (event.status === 'Sent') {
-                        if (channel === 'WhatsApp') countWhatsApp++;
-                        else if (channel === 'SMS') countSMS++;
-                        else if (channel === 'Email') countEmail++;
-                    }
-
-                    // A/B metric mapping rules
-                    if (event.status === 'Delivered' || event.status === 'Opened' || event.status === 'Clicked' || event.status === 'Purchased') {
-                        if (variant === 'A') deliveredA++;
-                        else deliveredB++;
-                    }
-                    if (event.status === 'Clicked' || event.status === 'Purchased') {
-                        if (variant === 'A') clickedA++;
-                        else clickedB++;
-                    }
+                    </div>`;
+                    container.insertAdjacentHTML('beforeend', rowHtml);
                 });
-                
-                // Update UI metric counters
-                liveRevenueCounter.innerText = `₹${accumulatedRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                
-                document.getElementById('count-whatsapp').innerText = countWhatsApp;
-                document.getElementById('count-sms').innerText = countSMS;
-                document.getElementById('count-email').innerText = countEmail;
-
-                const ctrA = deliveredA > 0 ? ((clickedA / deliveredA) * 100).toFixed(1) : "0.0";
-                const ctrB = deliveredB > 0 ? ((clickedB / deliveredB) * 100).toFixed(1) : "0.0";
-                document.getElementById('ctr-a-display').innerText = `${ctrA}% CTR`;
-                document.getElementById('ctr-b-display').innerText = `${ctrB}% CTR`;
-
-                // If there are new events, render them
-                if (data.events.length > lastEventCount) {
-                    liveEventsContainer.innerHTML = ''; // Clear old to prevent duplicates
-                    
-                    const latestEvents = data.events;                    
-                    latestEvents.forEach(event => {
-                        let statusColor = 'text-white border-white/20 bg-white/5';
-                        let icon = 'fa-paper-plane';
-                        
-                        if (event.status === 'Sent') { statusColor = 'text-blue-400 border-blue-400/30 bg-blue-400/10'; }
-                        if (event.status === 'Delivered') { statusColor = 'text-purple-400 border-purple-400/30 bg-purple-400/10'; icon = 'fa-check-double'; }
-                        if (event.status === 'Opened') { statusColor = 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'; icon = 'fa-envelope-open'; }
-                        if (event.status === 'Clicked') { statusColor = 'text-[#4FD1C5] border-[#4FD1C5]/30 bg-[#4FD1C5]/10'; icon = 'fa-hand-pointer'; }
-                        if (event.status === 'Purchased') { statusColor = 'text-[#00E676] border-[#00E676]/50 bg-[#00E676]/20 font-bold'; icon = 'fa-cart-shopping'; }
-                        if (event.status === 'PermanentlyFailed') { statusColor = 'text-red-500 border-red-500/30 bg-red-500/10 font-bold'; icon = 'fa-circle-xmark'; }
-
-                        // Channel icon mapping
-                        let channelIcon = 'fa-brands fa-whatsapp text-[#25D366]';
-                        if (event.channel === 'SMS') { channelIcon = 'fa-solid fa-message text-[#3B82F6]'; }
-                        else if (event.channel === 'Email') { channelIcon = 'fa-solid fa-envelope text-[#F97316]'; }
-
-                        // Distinct variant borders: Blue for Variant A, Purple for Variant B
-                        const variant = event.variant || 'A';
-                        const variantBorder = variant === 'A' ? 'border: 2px solid #3B82F6 !important;' : 'border: 2px solid #A855F7 !important;';
-
-                        const eventHtml = `
-                            <div class="flex items-center gap-4 py-2 px-4 rounded-xl border ${statusColor} animate-fade-in-up" style="${variantBorder}">
-                                <i class="fa-solid ${icon} w-5"></i>
-                                <i class="${channelIcon} text-base"></i>
-                                <span class="font-mono text-sm opacity-50">MSG_${event.message_id} (${variant})</span>
-                                <span class="text-sm tracking-wide ml-auto">${event.status}</span>
-                            </div>
-                        `;
-                        liveEventsContainer.insertAdjacentHTML('beforeend', eventHtml);
-                    });
-                    
-                    lastEventCount = data.events.length;  
-                    // Re-fetch comparative scoreboard when state shifts occur
-                    fetchWhyNotData();
-                }
-            } else {
-                theaterEmptyState.classList.remove('hidden');
-                liveEventsContainer.classList.add('hidden');
-                liveRevenueCounter.innerText = "₹0.00";
-                document.getElementById('ctr-a-display').innerText = "0.0% CTR";
-                document.getElementById('ctr-b-display').innerText = "0.0% CTR";
-                document.getElementById('count-whatsapp').innerText = "0";
-                document.getElementById('count-sms').innerText = "0";
-                document.getElementById('count-email').innerText = "0";
+            } catch (error) {
+                console.error("Why-Not Scoreboard Fetch Error:", error);
             }
-            liveEventsContainer.scrollTop = liveEventsContainer.scrollHeight;
-        } catch (error) {
-            console.error("Theater Polling Error:", error);
         }
-    }
 
-    // Add a simple fade-in animation
-    const style = document.createElement('style');
-    style.innerHTML = `@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }`;
-    document.head.appendChild(style);
+        /* ── Theater Polling ───────────────────────────── */
+        /* Throttle fetchWhyNotData calls — only run if 2+ seconds since last call (Bug #7) */
+        let _lastWhyNotFetch = 0;
+        function throttledFetchWhyNot() {
+            const now = Date.now();
+            if (now - _lastWhyNotFetch >= 2000) {
+                _lastWhyNotFetch = now;
+                fetchWhyNotData();
+            }
+        }
 
-    // Poll the server every 800 milliseconds
-    setInterval(pollLiveTheater, 800);
-    
-    // Load dynamic comparative rankings on browser load
-    window.addEventListener('DOMContentLoaded', fetchWhyNotData);
+        /* Polling interval reference for cleanup (Bug #12) */
+        let _theaterInterval = null;
 
-    function triggerAria(opportunityTitle) {
+        async function pollLiveTheater() {
+            try {
+                const response = await fetch('/api/theater/stream');
+                const data = await response.json();
+
+                /* Bug #4 fix: safely extract events array regardless of API response shape */
+                const allEvents = Array.isArray(data.events) ? data.events : [];
+
+                /* Bug #1 fix: discard events that pre-date the current campaign launch.
+                   This prevents stale backend events from triggering State 3/4 prematurely. */
+                const events = window._campaignStartedAt
+                    ? allEvents.filter(event => {
+                        if (!event.timestamp) return true; // keep if no timestamp field
+                        return new Date(event.timestamp).getTime() >= window._campaignStartedAt;
+                    })
+                    : allEvents;
+
+                if (events.length > 0) {
+                    /* Auto-advance S2→S3 only when a campaign has actually been launched */
+                    if (currentState === 2 && campaignLaunched) {
+                        setState(3);
+                        fetchWhyNotData();
+                    }
+
+                    theaterEmptyState.classList.add('hidden');
+                    liveEventsContainer.classList.remove('hidden');
+
+                    /* Aggregate metrics */
+                    let accumulatedRevenue = 0;
+                    let deliveredA = 0, clickedA = 0;
+                    let deliveredB = 0, clickedB = 0;
+                    /* Bug #5 fix: track unique customer IDs to avoid double-counting
+                       customers who receive messages on multiple channels */
+                    const uniqueCustomerIds = new Set();
+                    let countWhatsApp = 0, countSMS = 0, countEmail = 0;
+                    let purchases = 0;
+
+                    events.forEach(event => {
+                        const variant = event.variant || 'A';
+                        const channel = event.channel || 'WhatsApp';
+
+                        if (event.status === 'Purchased' && event.revenue) {
+                            accumulatedRevenue += parseFloat(event.revenue);
+                            purchases++;
+                        }
+
+                        if (event.status === 'Sent') {
+                            /* Track per-channel counts for display */
+                            if (channel === 'WhatsApp') countWhatsApp++;
+                            else if (channel === 'SMS') countSMS++;
+                            else if (channel === 'Email') countEmail++;
+                            /* Track unique customers — customer_id if available, else message_id */
+                            const customerId = event.customer_id || event.message_id;
+                            if (customerId) uniqueCustomerIds.add(String(customerId));
+                        }
+
+                        if (event.status === 'Delivered' || event.status === 'Opened' ||
+                            event.status === 'Clicked' || event.status === 'Purchased') {
+                            if (variant === 'A') deliveredA++;
+                            else deliveredB++;
+                        }
+                        if (event.status === 'Clicked' || event.status === 'Purchased') {
+                            if (variant === 'A') clickedA++;
+                            else clickedB++;
+                        }
+                    });
+
+                    /* Unique customers reached (Bug #5 fix) */
+                    const uniqueReached = uniqueCustomerIds.size > 0
+                        ? uniqueCustomerIds.size
+                        : (countWhatsApp + countSMS + countEmail); // fallback if no IDs
+
+                    /* Update counters */
+                    liveRevenueCounter.innerText = `₹${accumulatedRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    document.getElementById('count-whatsapp').innerText = countWhatsApp;
+                    document.getElementById('count-sms').innerText = countSMS;
+                    document.getElementById('count-email').innerText = countEmail;
+
+                    const ctrA = deliveredA > 0 ? ((clickedA / deliveredA) * 100).toFixed(1) : "0.0";
+                    const ctrB = deliveredB > 0 ? ((clickedB / deliveredB) * 100).toFixed(1) : "0.0";
+                    document.getElementById('ctr-a-display').innerText = `${ctrA}% CTR`;
+                    document.getElementById('ctr-b-display').innerText = `${ctrB}% CTR`;
+
+                    /* Render new events */
+                    if (events.length > lastEventCount) {
+                        liveEventsContainer.innerHTML = '';
+
+                        events.forEach(event => {
+                            let statusColor = 'text-white border-white/20 bg-white/5';
+                            let icon = 'fa-paper-plane';
+
+                            if (event.status === 'Sent') { statusColor = 'text-blue-400 border-blue-400/30 bg-blue-400/10'; }
+                            if (event.status === 'Delivered') { statusColor = 'text-purple-400 border-purple-400/30 bg-purple-400/10'; icon = 'fa-check-double'; }
+                            if (event.status === 'Opened') { statusColor = 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'; icon = 'fa-envelope-open'; }
+                            if (event.status === 'Clicked') { statusColor = 'text-[#4FD1C5] border-[#4FD1C5]/30 bg-[#4FD1C5]/10'; icon = 'fa-hand-pointer'; }
+                            if (event.status === 'Purchased') { statusColor = 'text-[#00E676] border-[#00E676]/50 bg-[#00E676]/20 font-bold'; icon = 'fa-cart-shopping'; }
+                            if (event.status === 'PermanentlyFailed') { statusColor = 'text-red-500 border-red-500/30 bg-red-500/10 font-bold'; icon = 'fa-circle-xmark'; }
+
+                            let channelIcon = 'fa-brands fa-whatsapp text-[#25D366]';
+                            if (event.channel === 'SMS') channelIcon = 'fa-solid fa-message text-[#3B82F6]';
+                            else if (event.channel === 'Email') channelIcon = 'fa-solid fa-envelope text-[#F97316]';
+
+                            const variant = event.variant || 'A';
+                            const variantBorder = variant === 'A'
+                                ? 'border: 2px solid #3B82F6 !important;'
+                                : 'border: 2px solid #A855F7 !important;';
+
+                            const eventHtml = `
+                                <div class="flex items-center gap-4 py-2 px-4 rounded-xl border ${statusColor} animate-fade-in-up" style="${variantBorder}">
+                                    <i class="fa-solid ${icon} w-5"></i>
+                                    <i class="${channelIcon} text-base"></i>
+                                    <span class="font-mono text-sm opacity-50">MSG_${event.message_id} (${variant})</span>
+                                    <span class="text-sm tracking-wide ml-auto">${event.status}</span>
+                                </div>`;
+                            liveEventsContainer.insertAdjacentHTML('beforeend', eventHtml);
+                        });
+
+                        lastEventCount = events.length;
+                        throttledFetchWhyNot(); /* Bug #7 fix: throttled instead of every poll */
+
+                        /* Reset stable-poll counter whenever new events arrive */
+                        window._theater.stablePolls = 0;
+
+                    } else if (currentState === 3 && lastEventCount > 0) {
+                        /* No new events — increment stability counter */
+                        window._theater.stablePolls++;
+
+                        /* Auto-advance to Results after 5 stable polls (~4 seconds).
+                           Require lastEventCount >= 3 to avoid false completion on sparse early payloads. */
+                        if (window._theater.stablePolls >= 5 && lastEventCount >= 3) {
+                            /* Bug #11 fix: use explicit boolean flag instead of -999 sentinel */
+                            window._resultsShown = true;
+                            window._theater.stablePolls = 0;
+
+                            populateResults({
+                                revenue: accumulatedRevenue,
+                                reached: uniqueReached, /* Bug #5 fix: unique customers */
+                                purchases: purchases,
+                                ctrA: ctrA,
+                                ctrB: ctrB,
+                                deliveredA, clickedA,
+                                deliveredB, clickedB
+                            });
+                            setState(4);
+
+                            /* Bug #12 fix: stop polling once results are shown */
+                            if (_theaterInterval !== null) {
+                                clearInterval(_theaterInterval);
+                                _theaterInterval = null;
+                            }
+                        }
+                    }
+
+                    /* Snapshot for result population */
+                    window._theater.accumulatedRevenue = accumulatedRevenue;
+                    window._theater.deliveredA = deliveredA; window._theater.clickedA = clickedA;
+                    window._theater.deliveredB = deliveredB; window._theater.clickedB = clickedB;
+                    window._theater.purchases = purchases;
+                    window._theater.totalSent = uniqueReached;
+                    window._theater.countWhatsApp = countWhatsApp;
+                    window._theater.countSMS = countSMS;
+                    window._theater.countEmail = countEmail;
+
+                } else {
+                    /* No events at all */
+                    theaterEmptyState.classList.remove('hidden');
+                    liveEventsContainer.classList.add('hidden');
+                    liveRevenueCounter.innerText = "₹0.00";
+                    document.getElementById('ctr-a-display').innerText = "0.0% CTR";
+                    document.getElementById('ctr-b-display').innerText = "0.0% CTR";
+                    document.getElementById('count-whatsapp').innerText = "0";
+                    document.getElementById('count-sms').innerText = "0";
+                    document.getElementById('count-email').innerText = "0";
+                }
+                liveEventsContainer.scrollTop = liveEventsContainer.scrollHeight;
+
+            } catch (error) {
+                console.error("Theater Polling Error:", error);
+            }
+        }
+
+        /* ── Populate Results Panel ────────────────────── */
+        function populateResults(m) {
+            document.getElementById('result-revenue').innerText =
+                `₹${m.revenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('result-reached').innerText = m.reached;
+            document.getElementById('result-purchases').innerText = m.purchases;
+            document.getElementById('result-ctr-a').innerText = `${m.ctrA}%`;
+            document.getElementById('result-ctr-b').innerText = `${m.ctrB}%`;
+
+            const ctrANum = parseFloat(m.ctrA);
+            const ctrBNum = parseFloat(m.ctrB);
+            const lift = Math.abs(ctrANum - ctrBNum).toFixed(1);
+            document.getElementById('result-ctr-lift').innerText = `+${lift}pp`;
+
+            /* Determine winner */
+            const banner = document.getElementById('result-winner-banner');
+            const badge = document.getElementById('result-winner-badge');
+            const text = document.getElementById('result-winner-text');
+
+            /* Bug #10 fix: handle tie case correctly */
+            if (ctrANum > ctrBNum) {
+                banner.className = 'winning-variant-banner winner-a';
+                text.innerText = 'Variant A — FOMO performed best';
+                badge.innerText = `${m.ctrA}% CTR`;
+            } else if (ctrBNum > ctrANum) {
+                banner.className = 'winning-variant-banner winner-b';
+                text.innerText = 'Variant B — Reward performed best';
+                badge.innerText = `${m.ctrB}% CTR`;
+            } else {
+                /* True tie */
+                banner.className = 'winning-variant-banner winner-a';
+                text.innerText = 'It\'s a tie — both variants performed equally';
+                badge.innerText = `${m.ctrA}% CTR`;
+            }
+        }
+
+        /* ── Reset to Discovery ────────────────────────── */
+        function resetToDiscovery() {
+            /* Reset execution guard */
+            campaignLaunched = false;
+            window._campaignStartedAt = null;
+            window._resultsShown = false; /* Bug #11 fix: clear explicit flag */
+            _lastWhyNotFetch = 0; /* Bug #7 fix: reset throttle timer */
+
+            /* Bug #12 fix: restart polling interval if it was stopped */
+            if (_theaterInterval === null) {
+                _theaterInterval = setInterval(pollLiveTheater, 800);
+            }
+
+            /* Reset all theater tracking state — local AND window snapshot */
+            lastEventCount = 0;
+            window._theater.stablePolls = 0;
+            window._theater.accumulatedRevenue = 0;
+            window._theater.deliveredA = 0;
+            window._theater.clickedA = 0;
+            window._theater.deliveredB = 0;
+            window._theater.clickedB = 0;
+            window._theater.purchases = 0;
+            window._theater.countWhatsApp = 0;
+            window._theater.countSMS = 0;
+            window._theater.countEmail = 0;
+            window._theater.totalSent = 0;
+
+            /* Reset UI counters */
+            liveRevenueCounter.innerText = "₹0.00";
+            document.getElementById('ctr-a-display').innerText = "0.0% CTR";
+            document.getElementById('ctr-b-display').innerText = "0.0% CTR";
+            document.getElementById('count-whatsapp').innerText = "0";
+            document.getElementById('count-sms').innerText = "0";
+            document.getElementById('count-email').innerText = "0";
+
+            /* Reset theater screen */
+            theaterEmptyState.classList.remove('hidden');
+            liveEventsContainer.classList.add('hidden');
+            liveEventsContainer.innerHTML = '';
+
+            /* Reset launch button to its original state */
+            const btn = document.getElementById('launch-campaign-btn');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Launch Campaign';
+            }
+
+            /* Reset planning panel */
+            document.getElementById('planning-opp-title').innerText = '—';
+            document.getElementById('planning-audience').innerText = '—';
+            document.getElementById('planning-revenue').innerText = '—';
+            document.getElementById('planning-roi').innerText = 'Calculating via ARIA →';
+            document.getElementById('variant-a-preview').innerText = 'ARIA is drafting Variant A…';
+            document.getElementById('variant-b-preview').innerText = 'ARIA is drafting Variant B…';
+
+            setState(1);
+        }
+
+        /* ── Launch Campaign ───────────────────────────── */
+        function launchCampaign() {
+            /* GUARD: prevent duplicate execution if user clicks twice or
+               if ARIA already triggered execution via the planning prompt */
+            if (campaignLaunched) return;
+            campaignLaunched = true;
+            window._campaignStartedAt = Date.now();
+            const btn = document.getElementById('launch-campaign-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Launching…';
+
+            /* Send explicit launch confirmation to ARIA backend */
+            const chatInput = document.getElementById('ai-prompt');
+            chatInput.value = "Confirmed. Execute the campaign now — launch all messages immediately.";
+            document.getElementById('send-btn').click();
+
+            /* Transition to theater immediately (optimistic) */
+            setState(3);
+            fetchWhyNotData();
+            /* Note: btn stays disabled — it is no longer visible in State 3.
+               It will be fully re-initialised by resetToDiscovery() on reset. */
+        }
+
+        /* ── triggerAria — extended with state transition ─ */
+        function triggerAria(opportunityTitle, audienceCount, revenueAtRisk) {
+            /* Store context for planning panel */
+            window._campaignContext = {
+                title: opportunityTitle,
+                audience: audienceCount || 0,
+                revenue: revenueAtRisk || 0
+            };
+
+            /* Populate planning panel immediately */
+            document.getElementById('planning-opp-title').innerText =
+                opportunityTitle;
+            document.getElementById('planning-audience').innerText =
+                (audienceCount && audienceCount > 0)
+                    ? Number(audienceCount).toLocaleString()
+                    : '—';
+            document.getElementById('planning-revenue').innerText =
+                revenueAtRisk
+                    ? `₹${parseFloat(revenueAtRisk).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    : '—';
+
+            /* Transition to State 2 */
+            setState(2);
+
+            /* Send to ARIA — plan-only prompt; execution is gated behind Launch Campaign button */
+            const chatInput = document.getElementById('ai-prompt');
+            chatInput.value = `Draft a highly converting WhatsApp campaign plan for the "${opportunityTitle}" opportunity. Include two message variants (Variant A: FOMO angle, Variant B: Reward angle), estimated audience size, projected ROI, and a recommended send schedule. Do NOT launch or execute yet — I will confirm launch separately.`;
+            document.getElementById('send-btn').click();
+        }
+
+        /* ── triggerAutoPilot ──────────────────────────── */
+        function triggerAutoPilot() {
+            window._campaignContext = { title: 'Auto-Pilot Selection', audience: 0, revenue: 0 };
+            document.getElementById('planning-opp-title').innerText = 'Auto-Pilot Selection';
+            document.getElementById('planning-audience').innerText = 'Scanning…';
+            document.getElementById('planning-revenue').innerText = 'Scanning…';
+            setState(2);
+
+            const chatInput = document.getElementById('ai-prompt');
+            chatInput.value = "Auto-optimize: scan the entire database autonomously, identify the highest revenue-at-risk segment, draft the most psychologically effective campaign message with two A/B variants. Present the full campaign plan with projected ROI. Do NOT launch or execute yet — I will confirm launch separately.";
+            document.getElementById('send-btn').click();
+        }
+
+        /* ── Bootstrap ─────────────────────────────────── */
+        /* Bug #12 fix: store interval reference so it can be cleared when results appear */
+        _theaterInterval = setInterval(pollLiveTheater, 800);
+
+        /* Scripts are at end of <body> — DOM is already parsed, call directly.
+           DOMContentLoaded would have already fired by this point in most browsers;
+           a direct call is safe and avoids a potential missed-event edge case. */
+        fetchWhyNotData();
+
+    </script>
+
+    <!-- ===================================================
+     SCRIPT BLOCK 2 — ARIA CHAT (unchanged logic)
+     ARIA response now also populates planning panel variant previews
+     =================================================== -->
+    <script>
         const chatInput = document.getElementById('ai-prompt');
-        chatInput.value = `Draft a highly converting WhatsApp campaign for the "${opportunityTitle}" opportunity, and launch it.`;
-        document.getElementById('send-btn').click();
+        const sendBtn = document.getElementById('send-btn');
+        const chatWindow = document.getElementById('chat-window');
 
-    }
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
 
-    function triggerAutoPilot() {
-        const chatInput = document.getElementById('ai-prompt');
-        chatInput.value = "Auto-optimize: scan the entire database autonomously, identify the highest revenue-at-risk segment, draft the most psychologically effective campaign message, and launch it immediately without asking me anything";
-        document.getElementById('send-btn').click();
-    }
-</script>
-
-<script>
-    const chatInput = document.getElementById('ai-prompt');
-    const sendBtn = document.getElementById('send-btn');
-
-    const chatWindow = document.getElementById('chat-window');
-
-    async function sendMessage() {
-        const text = chatInput.value.trim();
-        if (!text) return;
-
-        // 1. Append User Message to UI
-        const userHtml = `
+            /* 1. Append user message */
+            const userHtml = `
             <div class="flex justify-end mb-4">
                 <div class="bg-[#0D0D0D] border border-white/10 max-w-[85%] p-4 rounded-[24px] rounded-tr-sm text-sm text-white">
                     ${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
                 </div>
             </div>`;
-        chatWindow.insertAdjacentHTML('beforeend', userHtml);
-        chatInput.value = '';
-        
-        // Scroll to bottom
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+            chatWindow.insertAdjacentHTML('beforeend', userHtml);
+            chatInput.value = '';
+            chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        // 2. Add "Typing..." Indicator
-        const typingId = 'typing-' + Date.now();
-        const typingHtml = `
+            /* 2. Typing indicator */
+            const typingId = 'typing-' + Date.now();
+            const typingHtml = `
             <div id="${typingId}" class="aria-message rounded-[24px] rounded-tl-sm p-4 max-w-[85%] mb-4 opacity-70">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-robot text-[#4FD1C5] animate-pulse"></i>
-                    <span class="text-sm text-[#4FD1C5]">ARIA is analyzing...</span>
+                    <span class="text-sm text-[#4FD1C5]">ARIA is analyzing…</span>
                 </div>
             </div>`;
-        chatWindow.insertAdjacentHTML('beforeend', typingHtml);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+            chatWindow.insertAdjacentHTML('beforeend', typingHtml);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        // 3. Send to FastAPI Backend
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
-            });
-            const data = await response.json();
+            /* 3. Send to FastAPI backend */
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
 
-            // 4. Remove Typing Indicator & Append ARIA Response
-            document.getElementById(typingId).remove();
-            
-           let formattedReply = data.reply
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/### (.*?)(\n|$)/g, '<h3>$1</h3>')
-                .replace(/\* \*\*(.*?):\*\* (.*?)(\n|$)/g, '<li><strong>$1:</strong> $2</li>')
-                .replace(/\* (.*?)(\n|$)/g, '<li>$1</li>')
-                .replace(/(<li>.*?<\/li>(\n)?)+/gs, (match) => `<ul>${match}</ul>`)
-                .replace(/\n/g, '<br>');
-            const ariaHtml = `
+                /* 4. Remove typing indicator */
+                document.getElementById(typingId).remove();
+
+                /* 5. Format reply */
+                let formattedReply = data.reply
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/### (.*?)(\n|$)/g, '<h3>$1</h3>')
+                    .replace(/\* \*\*(.*?):\*\* (.*?)(\n|$)/g, '<li><strong>$1:</strong> $2</li>')
+                    .replace(/\* (.*?)(\n|$)/g, '<li>$1</li>')
+                    .replace(/(<li>.*?<\/li>(\n)?)+/gs, (match) => `<ul>${match}</ul>`)
+                    .replace(/\n/g, '<br>');
+
+                const ariaHtml = `
                 <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%] mb-4">
                     <div class="flex items-center gap-2 mb-3">
                         <i class="fa-solid fa-robot text-[#4FD1C5]"></i>
@@ -589,26 +1725,76 @@ body{
                     </div>
                     <p class="text-secondary text-sm leading-relaxed">${formattedReply}</p>
                 </div>`;
-            chatWindow.insertAdjacentHTML('beforeend', ariaHtml);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+                chatWindow.insertAdjacentHTML('beforeend', ariaHtml);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        } catch (error) {
-            if (document.getElementById(typingId)) {
-                document.getElementById(typingId).remove();
+                /* 6. Feed planning panel variant placeholders with reply summary
+                      Only update if still in State 2 (pre-launch) */
+                if (document.body.getAttribute('data-state') === '2') {
+                    const plainText = data.reply;
+
+                    /* Bug #3 fix: properly parse both Variant A and Variant B from ARIA response.
+                       Look for "Variant A:" and "Variant B:" sections in the response. */
+                    const variantAMatch = plainText.match(/variant\s*a[:\-–]\s*([\s\S]+?)(?=variant\s*b[:\-–]|$)/i);
+                    const variantBMatch = plainText.match(/variant\s*b[:\-–]\s*([\s\S]+?)(?=variant\s*[ac][:\-–]|\n\n\n|$)/i);
+
+                    if (variantAMatch) {
+                        const previewA = variantAMatch[1].trim().substring(0, 160).trim();
+                        document.getElementById('variant-a-preview').innerText =
+                            previewA.length >= 160 ? previewA + '…' : previewA;
+                    } else {
+                        /* Fallback: first 160 chars of reply */
+                        const fallback = plainText.length > 160
+                            ? plainText.substring(0, 160).trim() + '…'
+                            : plainText.trim();
+                        document.getElementById('variant-a-preview').innerText = fallback;
+                    }
+
+                    if (variantBMatch) {
+                        const previewB = variantBMatch[1].trim().substring(0, 160).trim();
+                        document.getElementById('variant-b-preview').innerText =
+                            previewB.length >= 160 ? previewB + '…' : previewB;
+                    } else {
+                        document.getElementById('variant-b-preview').innerText =
+                            'Reward-based variant included in full plan above →';
+                    }
+
+                    /* Bug #2 fix: broader ROI regex handles more natural-language formats */
+                    const roiMatch =
+                        plainText.match(/ROI[^0-9]*(\d+(?:\.\d+)?)%/i) ||
+                        plainText.match(/(\d+(?:\.\d+)?)%\s*(?:ROI|return)/i) ||
+                        plainText.match(/return[^0-9]*(\d+(?:\.\d+)?)%/i);
+                    if (roiMatch) {
+                        document.getElementById('planning-roi').innerText = `~${roiMatch[1]}% projected`;
+                    }
+
+                    /* Bug #6 fix: if AutoPilot left revenue as "Scanning…", try to extract it from ARIA reply */
+                    const revenueEl = document.getElementById('planning-revenue');
+                    if (revenueEl && revenueEl.innerText === 'Scanning…') {
+                        const revenueMatch = plainText.match(/₹\s*([\d,]+(?:\.\d+)?)/);
+                        if (revenueMatch) {
+                            const parsed = parseFloat(revenueMatch[1].replace(/,/g, ''));
+                            if (!isNaN(parsed)) {
+                                revenueEl.innerText = `₹${parsed.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                if (document.getElementById(typingId)) {
+                    document.getElementById(typingId).remove();
+                }
+                console.error("Connection lost:", error);
             }
-            console.error("Connection lost:", error);
         }
-    }
 
-    // Trigger on Button Click
-    sendBtn.addEventListener('click', sendMessage);
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
 
-    // Trigger on Enter Key
-    chatInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
-</script>
 </body>
+
 </html>
