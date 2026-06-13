@@ -1308,7 +1308,11 @@
 
         async function pollLiveTheater() {
             try {
-                const response = await fetch('/api/theater/stream');
+                const campaignParam = window._activeCampaignId
+                    ? `?campaign_id=${window._activeCampaignId}`
+                    : '';
+                const response = await fetch(`/api/theater/stream${campaignParam}`);
+                
                 const data = await response.json();
 
                 /* Bug #4 fix: safely extract events array regardless of API response shape */
@@ -1453,7 +1457,7 @@
 
                         /* Auto-advance to Results after 5 stable polls (~4 seconds).
                            Require lastEventCount >= 3 to avoid false completion on sparse early payloads. */
-                        if (window._theater.stablePolls >= 5 && lastEventCount >= 3) {
+                        if (window._theater.stablePolls >= 10 && lastEventCount >= 10 && window._activeCampaignId) {
                             /* Bug #11 fix: use explicit boolean flag instead of -999 sentinel */
                             window._resultsShown = true;
                             window._theater.stablePolls = 0;
@@ -1476,6 +1480,7 @@
                             }
                         }
                     }
+
 
                     /* Snapshot for result population */
                     window._theater.accumulatedRevenue = accumulatedRevenue;
@@ -1616,11 +1621,6 @@
             chatInput.value = "Confirmed. Execute the campaign now — launch all messages immediately.";
             document.getElementById('send-btn').click();
 
-            /* Transition to theater immediately (optimistic) */
-            setState(3);
-            fetchWhyNotData();
-            /* Note: btn stays disabled — it is no longer visible in State 3.
-               It will be fully re-initialised by resetToDiscovery() on reset. */
         }
 
         /* ── triggerAria — extended with state transition ─ */
@@ -1725,7 +1725,11 @@
                 /* Capture campaign_id if backend returns one — used by theater
                    to isolate events for THIS campaign run (no timestamp on events) */
                 if (data.campaign_id) window._activeCampaignId = data.campaign_id;
-                if (data.campaignId) window._activeCampaignId = data.campaignId;
+                if (data.campaignId) window._activeCampaignId = data.campaignId
+                if (window._activeCampaignId && campaignLaunched && currentState === 2) {
+                    setState(3);
+                    fetchWhyNotData();
+                }
 
                 /* 4. Remove typing indicator */
                 document.getElementById(typingId)?.remove();

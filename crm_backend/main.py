@@ -204,19 +204,9 @@ def receive_delivery_webhook(payload: dict):
             log.updated_at = datetime.now(timezone.utc)
             session.add(log)
         else:
-            log = MessageLog(
-                message_id=message_id_str,
-                campaign_id=campaign_id,
-                customer_id=0,
-                channel="WhatsApp",
-                message_text="",
-                status=status,
-                variant="A",
-                # FIX #3: use timezone-aware datetime
-                updated_at=datetime.now(timezone.utc)
-            )
-            session.add(log)
-            
+            print(f"⚠️ Webhook for unknown message_id {message_id_str} — ignoring.")
+            return {"status": "ignored - message_id not found in database"}
+
         session.commit()
         session.refresh(log)
         
@@ -345,18 +335,23 @@ def receive_delivery_webhook(payload: dict):
     return {"status": "Webhook received and logged to database"}
 
 @app.get("/api/theater/stream")
-def get_theater_stream(session: Session = Depends(get_session)):
+def get_theater_stream(session: Session = Depends(get_session), campaign_id: int = None):
     """Endpoint for the frontend UI to poll for live events, backed by SQLite as single source of truth."""
-    # Query the latest active campaign
-    latest_campaign_stmt = select(Campaign).order_by(Campaign.created_at.desc())
-    latest_campaign = session.exec(latest_campaign_stmt).first()
-    
-    if not latest_campaign:
+    if campaign_id:
+        target_campaign = session.exec(
+            select(Campaign).where(Campaign.id == campaign_id)
+        ).first()
+    else:
+        target_campaign = session.exec(
+            select(Campaign).order_by(Campaign.created_at.desc())
+        ).first()
+
+    if not target_campaign:
         return {"events": []}
-    
-    # Query all non-Pending message log transitions for the latest campaign
+
+    # Query all non-Pending message log transitions for the target campaign
     logs_stmt = select(MessageLog).where(
-        MessageLog.campaign_id == latest_campaign.id,
+        MessageLog.campaign_id == target_campaign.id,
         MessageLog.status != "Pending"
     ).order_by(MessageLog.updated_at.asc())
     
