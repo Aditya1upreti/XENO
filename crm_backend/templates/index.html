@@ -1330,6 +1330,15 @@
                     if (isNaN(t)) return true; /* unparseable timestamp — keep */
                     return window._campaignStartedAt ? t >= window._campaignStartedAt : true;
                 });
+                let accumulatedRevenue = 0;
+                let deliveredA = 0, clickedA = 0;
+                let deliveredB = 0, clickedB = 0;
+                let uniqueReached = 0;
+                let countWhatsApp = 0, countSMS = 0, countEmail = 0;
+                let purchases = 0;
+                let ctrA = "0.0";
+                let ctrB = "0.0";
+
 
                 if (events.length > 0) {
                     /* Auto-advance S2→S3 only when a campaign has actually been launched */
@@ -1341,15 +1350,11 @@
                     theaterEmptyState.classList.add('hidden');
                     liveEventsContainer.classList.remove('hidden');
 
-                    /* Aggregate metrics */
-                    let accumulatedRevenue = 0;
-                    let deliveredA = 0, clickedA = 0;
-                    let deliveredB = 0, clickedB = 0;
+                    
                     /* Bug #5 fix: track unique customer IDs to avoid double-counting
                        customers who receive messages on multiple channels */
                     const uniqueCustomerIds = new Set();
-                    let countWhatsApp = 0, countSMS = 0, countEmail = 0;
-                    let purchases = 0;
+                   
 
                     events.forEach(event => {
                         const variant = event.variant || 'A';
@@ -1387,7 +1392,7 @@
                     });
 
                     /* Unique customers reached (Bug #5 fix) */
-                    const uniqueReached = uniqueCustomerIds.size > 0
+                    uniqueReached = uniqueCustomerIds.size > 0
                         ? uniqueCustomerIds.size
                         : (countWhatsApp + countSMS + countEmail); // fallback if no IDs
 
@@ -1397,8 +1402,8 @@
                     document.getElementById('count-sms').innerText = countSMS;
                     document.getElementById('count-email').innerText = countEmail;
 
-                    const ctrA = deliveredA > 0 ? ((clickedA / deliveredA) * 100).toFixed(1) : "0.0";
-                    const ctrB = deliveredB > 0 ? ((clickedB / deliveredB) * 100).toFixed(1) : "0.0";
+                    ctrA = deliveredA > 0 ? ((clickedA / deliveredA) * 100).toFixed(1) : "0.0";
+                    ctrB = deliveredB > 0 ? ((clickedB / deliveredB) * 100).toFixed(1) : "0.0";
                     document.getElementById('ctr-a-display').innerText = `${ctrA}% CTR`;
                     document.getElementById('ctr-b-display').innerText = `${ctrB}% CTR`;
 
@@ -1644,7 +1649,7 @@
 
             /* Send to ARIA — plan-only prompt; execution is gated behind Launch Campaign button */
             const chatInput = document.getElementById('ai-prompt');
-            chatInput.value = `Draft a highly converting WhatsApp campaign plan for the "${opportunityTitle}" opportunity. Include two message variants (Variant A: FOMO angle, Variant B: Reward angle), estimated audience size, projected ROI, and a recommended send schedule. Do NOT launch or execute yet — I will confirm launch separately.`;
+            chatInput.value = `Draft a highly converting campaign plan for the "${opportunityTitle}" opportunity. Include two message variants (Variant A: FOMO angle, Variant B: Reward angle), estimated audience size, projected ROI, and a recommended send schedule. Do NOT launch or execute yet — I will confirm launch separately.`;
             document.getElementById('send-btn').click();
         }
 
@@ -1752,7 +1757,7 @@
                 /* 6. Feed planning panel variant placeholders with reply summary
                       Only update if still in State 2 (pre-launch) */
                 if (document.body.getAttribute('data-state') === '2') {
-                    const plainText = data.reply;
+                    const plainText = data.reply || '';
 
                     /* Bug #3 fix: properly parse both Variant A and Variant B from ARIA response.
                        Look for "Variant A:" and "Variant B:" sections in the response. */
