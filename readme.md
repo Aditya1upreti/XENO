@@ -13,7 +13,10 @@
 
 🚀 **CRM Backend:** https://nexus-crm-backend-7ufk.onrender.com
 📡 **Channel Service:** https://nexus-channel-service.onrender.com
-🎥 **Demo Video:** https://www.youtube.com/watch?v=lw6BTjfIfJo
+🎥 **Demo Video:** https://www.youtube.com/watch?v=lw6BTjfIfJo 
+
+---
+
 ## Demo
 
 The NEXUS workflow spans across four operational pipeline states: Discovery, Campaign Planning, Live Execution (Theater), and Results.
@@ -29,7 +32,7 @@ At its core, NEXUS targets customer churn and delayed purchase intervals within 
 
 Rather than relying on generic bulk marketing broadcasts, NEXUS integrates an autonomous AI agent, **ARIA**, powered by Google's `gemini-2.5-flash` model. ARIA acts directly on the local transactional database, pulling cohort records, segmenting buyers by behavioral personas (Premium Loyalists, Weekend Deal Hunters, Fashionistas, and Lapsed VIPs), and generating grounded marketing copy.
 
-The system features a closed-loop learning architecture. Every campaign operates as a split-variant test (Variant A: FOMO/Scarcity vs. Variant B: Exclusivity/Rewards). When campaign dispatches run, message performance is logged through an active webhook stream. Once the campaign concludes, the best-performing variant is stored directly inside SQLite. Future campaigns targeting that persona inherit these findings as benchmark parameters, eliminating static rules in favor of dynamic learning.
+The system features a closed-loop learning architecture. Demo data is seeded with Indian e-commerce profiles and INR pricing to reflect a realistic fashion retail context.Every campaign operates as a split-variant test (Variant A: FOMO/Scarcity vs. Variant B: Exclusivity/Rewards). When campaign dispatches run, message performance is logged through an active webhook stream. Once the campaign concludes, the best-performing variant is stored directly inside SQLite. Future campaigns targeting that persona inherit these findings as benchmark parameters, eliminating static rules in favor of dynamic learning.
 
 ---
 
@@ -59,8 +62,7 @@ The system features a closed-loop learning architecture. Every campaign operates
 
 ## Architecture
 
-NEXUS is built using a decoupled, event-driven two-service architecture:
-
+NEXUS is built using a decoupled, event-driven two-service architecture. Port numbers shown are for local development — on Render, both services bind to the dynamically assigned `$PORT` variable:
 ```
                       +---------------------------------------+
                       |               FRONTEND                |
@@ -100,7 +102,7 @@ NEXUS is built using a decoupled, event-driven two-service architecture:
 4. **Simulation:** The Channel Service processes message lifecycles in the background, utilizing probability weights mapping to each channel type (WhatsApp, SMS, and Email).
 5. **Webhook Stream:** The Channel Service continuously hits `/api/webhook/delivery` with delivery status transitions.
 6. **Live Theater Polling:** The frontend UI queries `/api/theater/stream` every 800ms, displaying carrier state transitions as they occur.
-7. **Cognitive Completion:** Upon processing all terminal dispatches, the Campaign is marked "Completed", and its split performance metrics are compiled and logged as a new `CampaignMemory` row for future grounding.
+7. **Cognitive Completion:** When the total count of terminal MessageLog states (Delivered, Opened, Clicked, Purchased, PermanentlyFailed) equals the campaign's target customer count, the Campaign is marked "Completed". The winning A/B variant, CTR benchmark, and lesson text are written as a new `CampaignMemory` row — inherited by all future campaigns targeting that persona.
 
 ---
 
@@ -135,8 +137,8 @@ Follow these steps to run both services on your local machine:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/nexus.git
-   cd nexus
+   git clone https://github.com/Aditya1upreti/XENO.git
+   cd XENO
    ```
 
 2. **Create and activate a virtual environment:**
@@ -227,8 +229,8 @@ To deploy NEXUS onto Render's cloud platform, deploy both components as **Web Se
 | `POST`| `/api/opportunities/refresh`| Forces recalculation of customer counts and revenue at risk. |
 | `GET` | `/api/customers` | Returns top 10 at-risk customers sorted by `churn_score DESC`. |
 | `GET` | `/api/campaigns` | Returns all executed campaigns with aggregated funnel counts. |
-| `GET` | `/api/analysis/why-not` | Computes comparative financial opportunity evaluations across cohorts. |
-| `GET` | `/api/health` | Returns active SQLite engine and database metrics. |
+
+| `GET` | `/api/health` | Returns active SQLite engine and database metrics. || `GET` | `/api/analysis/why-not` | Returns ROI and revenue-at-risk rankings across all four customer personas, powering the Why-Not Comparative Analysis scoreboard in the Live Theater. |
 | `POST`| `/api/chat` | Takes raw user text, passes it to ARIA, and returns an agent reply. |
 | `POST`| `/api/webhook/delivery` | Endpoint for recording inbound delivery status states. |
 | `GET` | `/api/theater/stream` | Stream endpoint returning events mapped to the latest campaign ID. |
@@ -324,11 +326,11 @@ When all messages reach a completed state (either converted or failed), the inte
 ## Known Limitations
 
 * **Gemini Free Tier Rate Limits:** Since ARIA relies on the free tier of `gemini-2.5-flash`, rapid, sequential prompts may result in temporary `429 (Resource Exhausted)` API restrictions.
-* * **Render Cold Starts:** When deployed on Render free web service instances, the server may experience spin-down delays during cold starts. This project uses UptimeRobot to ping both services every 5 minutes, keeping them warm and eliminating cold start delays during demonstration.
+* **Render Cold Starts:** When deployed on Render free web service instances, the server may experience spin-down delays during cold starts. This project uses UptimeRobot to ping both services every 5 minutes, keeping them warm and eliminating cold start delays during demonstration.
 * **Ephemeral SQLite on Render:** Render free-tier instances run on ephemeral filesystems. The SQLite database is automatically recreated and reseeded on every cold start via the FastAPI lifespan event — the application is always fully operational after boot. Note that campaign history from previous sessions does not carry over across restarts.
 
 ---
 
 ## License
 
-NEXUS is distributed under the [MIT License](LICENSE). Feel free to modify, distribute, and integrate the code for educational use or hackathon builds.
+NEXUS is distributed under the [MIT License](LICENSE). See LICENSE for full details.
