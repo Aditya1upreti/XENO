@@ -13,8 +13,7 @@
 
 🚀 **CRM Backend:** https://nexus-crm-backend-7ufk.onrender.com
 📡 **Channel Service:** https://nexus-channel-service.onrender.com
-🎥 **Demo Video:** https://loom.com/your-link-here
-
+🎥 **Demo Video:** https://www.youtube.com/watch?v=lw6BTjfIfJo
 ## Demo
 
 The NEXUS workflow spans across four operational pipeline states: Discovery, Campaign Planning, Live Execution (Theater), and Results.
