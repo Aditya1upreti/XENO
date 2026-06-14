@@ -1724,7 +1724,11 @@
                    to isolate events for THIS campaign run (no timestamp on events) */
                 if (data.campaign_id) window._activeCampaignId = data.campaign_id;
                 if (data.campaignId) window._activeCampaignId = data.campaignId
-                if (window._activeCampaignId && campaignLaunched && currentState === 2) {
+                if (window._activeCampaignId && currentState === 2) {
+                    /* A real campaign_id only exists once stage_campaign() has actually run —
+                       whether triggered by the Launch button or a chat command like "run autopilot".
+                       That fact alone is sufficient to advance to Theater. */
+                    campaignLaunched = true;
                     setState(3);
                     fetchWhyNotData();
                 }
