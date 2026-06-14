@@ -9,6 +9,11 @@
 [![Render](https://img.shields.io/badge/Render-Deployment-46E3B7?logo=render&logoColor=white)](https://render.com/)
 
 ---
+## Live Demo
+
+🚀 **CRM Backend:** https://nexus-crm-backend-7ufk.onrender.com
+📡 **Channel Service:** https://nexus-channel-service.onrender.com
+🎥 **Demo Video:** https://loom.com/your-link-here
 
 ## Demo
 
@@ -105,7 +110,7 @@ NEXUS is built using a decoupled, event-driven two-service architecture:
 ```text
 NEXUS_PROJECT/
 ├── requirements.txt            # Python environment packages
-├── .env                        # Local system configuration variables
+├── .env.example                # Local system configuration variables (copy to .env)
 ├── .gitignore                  # Git untracked pattern definitions
 ├── nexus_crm.db                # SQLite database (generated during runtime)
 ├── channel_service/            # Mock Telecom Carrier Microservice
@@ -320,8 +325,8 @@ When all messages reach a completed state (either converted or failed), the inte
 ## Known Limitations
 
 * **Gemini Free Tier Rate Limits:** Since ARIA relies on the free tier of `gemini-2.5-flash`, rapid, sequential prompts may result in temporary `429 (Resource Exhausted)` API restrictions.
-* **Render Cold Starts:** When deployed on Render free web service instances, the server may experience spin-down delays of up to 50 seconds during cold starts. Run an initial health ping (`GET /api/health`) to wake the server before demonstration.
-* **Ephemeral SQLite on Render:** Render free-tier instances run on ephemeral filesystems. Database writes and learning loops (such as campaign creations and new cognitive memories) do not persist across server restarts unless deployed alongside a persistent disk mount.
+* * **Render Cold Starts:** When deployed on Render free web service instances, the server may experience spin-down delays during cold starts. This project uses UptimeRobot to ping both services every 5 minutes, keeping them warm and eliminating cold start delays during demonstration.
+* **Ephemeral SQLite on Render:** Render free-tier instances run on ephemeral filesystems. The SQLite database is automatically recreated and reseeded on every cold start via the FastAPI lifespan event — the application is always fully operational after boot. Note that campaign history from previous sessions does not carry over across restarts.
 
 ---
 
