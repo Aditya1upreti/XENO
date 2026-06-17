@@ -16,16 +16,16 @@
    DESIGN TOKENS
    ===================================================== */
         :root {
-            --bg: #050505;
-            --surface: #0D0D0D;
-            --card: #121212;
-            --card-elevated: #171717;
-            --revenue: #00E676;
-            --revenue-dark: #00C853;
-            --ai: #4FD1C5;
-            --vip: #D6A756;
-            --warning: #F59E0B;
-            --danger: #EF4444;
+            --bg: #080510;
+            --surface: #0F0B1A;
+            --card: #120E1F;
+            --card-elevated: #1B1430;
+            --revenue: #22D3EE;
+            --revenue-dark: #0EA5C4;
+            --ai: #A78BFA;
+            --vip: #FBBF24;
+            --warning: #FBBF24;
+            --danger: #FB7185;
             --text-primary: #FAFAFA;
             --text-secondary: #A3A3A3;
             --text-muted: #6B7280;
@@ -98,27 +98,27 @@
 
         /* Dynamic Badges */
         .vip-pill {
-            background: rgba(214, 167, 86, .10);
+            background: rgba(251, 191, 36, .10);
             color: var(--vip);
-            border: 1px solid rgba(214, 167, 86, .20);
+            border: 1px solid rgba(251, 191, 36, .20);
         }
 
         .revenue-pill {
-            background: rgba(0, 230, 118, .10);
+            background: rgba(34, 211, 238, .10);
             color: var(--revenue);
-            border: 1px solid rgba(0, 230, 118, .20);
+            border: 1px solid rgba(34, 211, 238, .20);
         }
 
         .ai-pill {
-            background: rgba(79, 209, 197, .10);
+            background: rgba(167, 139, 250, .10);
             color: var(--ai);
-            border: 1px solid rgba(79, 209, 197, .20);
+            border: 1px solid rgba(167, 139, 250, .20);
         }
 
         .warning-pill {
-            background: rgba(245, 158, 11, .10);
+            background: rgba(251, 191, 36, .10);
             color: var(--warning);
-            border: 1px solid rgba(245, 158, 11, .20);
+            border: 1px solid rgba(251, 191, 36, .20);
         }
 
         /* Revenue */
@@ -132,7 +132,7 @@
             background: linear-gradient(135deg, var(--revenue), var(--revenue-dark));
             color: #02110A;
             font-weight: 700;
-            box-shadow: 0 8px 24px rgba(0, 230, 118, .08);
+            box-shadow: 0 8px 24px rgba(34, 211, 238, .08);
             transition: .25s ease;
         }
 
@@ -144,19 +144,19 @@
    ARIA
    ===================================================== */
         .aria-section {
-            background: linear-gradient(180deg, rgba(79, 209, 197, .12), rgba(79, 209, 197, .03));
+            background: linear-gradient(180deg, rgba(167, 139, 250, .12), rgba(167, 139, 250, .03));
         }
 
         .aria-message {
-            background: rgba(79, 209, 197, .05);
-            border: 1px solid rgba(79, 209, 197, .15);
+            background: rgba(167, 139, 250, .05);
+            border: 1px solid rgba(167, 139, 250, .15);
         }
 
         .aria-message h3 {
             font-size: .75rem;
             text-transform: uppercase;
             letter-spacing: .15em;
-            color: #4FD1C5;
+            color: #A78BFA;
             margin-top: 1rem;
             margin-bottom: .75rem;
             font-weight: 700;
@@ -180,7 +180,7 @@
             content: "•";
             position: absolute;
             left: 0;
-            color: #4FD1C5;
+            color: #A78BFA;
             font-weight: bold;
         }
 
@@ -197,7 +197,7 @@
 
         /* Theater */
         .theater {
-            background: radial-gradient(circle at center, rgba(0, 230, 118, .03), transparent 70%);
+            background: radial-gradient(circle at center, rgba(34, 211, 238, .03), transparent 70%);
             border: 1px solid rgba(255, 255, 255, .05);
         }
 
@@ -475,13 +475,13 @@
         }
 
         .variant-card.variant-a {
-            background: rgba(59, 130, 246, .05);
-            border-color: rgba(59, 130, 246, .15);
+            background: rgba(34, 211, 238, .05);
+            border-color: rgba(34, 211, 238, .15);
         }
 
         .variant-card.variant-b {
-            background: rgba(168, 85, 247, .05);
-            border-color: rgba(168, 85, 247, .15);
+            background: rgba(167, 139, 250, .05);
+            border-color: rgba(167, 139, 250, .15);
         }
 
         .variant-label {
@@ -493,11 +493,11 @@
         }
 
         .variant-a .variant-label {
-            color: #60a5fa;
+            color: #22D3EE;
         }
 
         .variant-b .variant-label {
-            color: #c084fc;
+            color: #A78BFA;
         }
 
         .variant-body {
@@ -523,13 +523,13 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 12px 40px rgba(0, 230, 118, .2);
+            box-shadow: 0 12px 40px rgba(34, 211, 238, .2);
             transition: transform .2s ease, box-shadow .2s ease;
         }
 
         .launch-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 16px 48px rgba(0, 230, 118, .3);
+            box-shadow: 0 16px 48px rgba(34, 211, 238, .3);
         }
 
         .launch-btn:active {
@@ -555,8 +555,8 @@
         }
 
         .theater-revenue-block {
-            background: rgba(0, 230, 118, .07);
-            border: 1px solid rgba(0, 230, 118, .18);
+            background: rgba(34, 211, 238, .07);
+            border: 1px solid rgba(34, 211, 238, .18);
             border-radius: 20px;
             padding: 14px 22px;
             display: flex;
@@ -573,15 +573,15 @@
         }
 
         .theater-variant-block.va {
-            background: rgba(59, 130, 246, .07);
-            border: 1px solid rgba(59, 130, 246, .18);
-            color: #60a5fa;
+            background: rgba(34, 211, 238, .07);
+            border: 1px solid rgba(34, 211, 238, .18);
+            color: #22D3EE;
         }
 
         .theater-variant-block.vb {
-            background: rgba(168, 85, 247, .07);
-            border: 1px solid rgba(168, 85, 247, .18);
-            color: #c084fc;
+            background: rgba(167, 139, 250, .07);
+            border: 1px solid rgba(167, 139, 250, .18);
+            color: #A78BFA;
         }
 
         .theater-meta-row {
@@ -690,13 +690,13 @@
         }
 
         .winning-variant-banner.winner-a {
-            background: linear-gradient(135deg, rgba(59, 130, 246, .12), rgba(59, 130, 246, .04));
-            border: 1px solid rgba(59, 130, 246, .25);
+            background: linear-gradient(135deg, rgba(34, 211, 238, .12), rgba(34, 211, 238, .04));
+            border: 1px solid rgba(34, 211, 238, .25);
         }
 
         .winning-variant-banner.winner-b {
-            background: linear-gradient(135deg, rgba(168, 85, 247, .12), rgba(168, 85, 247, .04));
-            border: 1px solid rgba(168, 85, 247, .25);
+            background: linear-gradient(135deg, rgba(167, 139, 250, .12), rgba(167, 139, 250, .04));
+            border: 1px solid rgba(167, 139, 250, .25);
         }
 
         .winner-badge {
@@ -709,19 +709,19 @@
         }
 
         .winner-a .winner-badge {
-            background: rgba(59, 130, 246, .2);
-            color: #60a5fa;
+            background: rgba(34, 211, 238, .2);
+            color: #22D3EE;
         }
 
         .winner-b .winner-badge {
-            background: rgba(168, 85, 247, .2);
-            color: #c084fc;
+            background: rgba(167, 139, 250, .2);
+            color: #A78BFA;
         }
 
         /* Run Another Campaign button */
         .run-again-btn {
             background: transparent;
-            border: 1px solid rgba(79, 209, 197, .35);
+            border: 1px solid rgba(167, 139, 250, .35);
             color: var(--ai);
             font-size: 0.875rem;
             font-weight: 700;
@@ -736,8 +736,8 @@
         }
 
         .run-again-btn:hover {
-            background: rgba(79, 209, 197, .08);
-            border-color: rgba(79, 209, 197, .6);
+            background: rgba(167, 139, 250, .08);
+            border-color: rgba(167, 139, 250, .6);
             transform: translateY(-1px);
         }
 
@@ -849,7 +849,7 @@
     <header class="header px-6 py-4 flex justify-between items-center z-10 flex-shrink-0">
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-3">
-                <i class="fa-solid fa-brain text-[#4FD1C5] text-2xl"></i>
+                <i class="fa-solid fa-brain text-[#A78BFA] text-2xl"></i>
                 <h1 class="text-2xl font-bold tracking-wider">
                     NEX<span class="nexus-gradient">US</span>
                 </h1>
@@ -864,8 +864,8 @@
         </div>
         <div class="flex items-center gap-4 text-sm text-secondary">
             <button onclick="triggerAutoPilot()"
-                class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 border border-[#4FD1C5]/30 animate-pulse"
-                style="background:rgba(79,209,197,.15);color:#4FD1C5;box-shadow:0 0 12px rgba(79,209,197,.2);">
+                class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 border border-[#A78BFA]/30 animate-pulse"
+                style="background:rgba(167,139,250,.15);color:#A78BFA;box-shadow:0 0 12px rgba(167,139,250,.2);">
                 <i class="fa-solid fa-bolt"></i> Auto-Pilot
             </button>
             <span class="flex items-center gap-2">
@@ -1008,16 +1008,16 @@
             <!-- ─────────────────────────────────────────
              PANEL: ARIA COPILOT (States 1 & 2)
              ───────────────────────────────────────── -->
-            <div id="panel-aria" class="aria-section flex-1 p-6 flex flex-col relative border-l border-[#4FD1C5]/10"
+            <div id="panel-aria" class="aria-section flex-1 p-6 flex flex-col relative border-l border-[#A78BFA]/10"
                 style="overflow:hidden;">
-                <h2 class="text-xs uppercase tracking-[0.25em] text-[#4FD1C5] mb-5 flex-shrink-0">
+                <h2 class="text-xs uppercase tracking-[0.25em] text-[#A78BFA] mb-5 flex-shrink-0">
                     ARIA Agent Copilot
                 </h2>
                 <div class="flex-1 overflow-y-auto space-y-4 hidden-scrollbar pr-2" id="chat-window">
                     <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%]">
                         <div class="flex items-center gap-2 mb-3">
-                            <i class="fa-solid fa-robot text-[#4FD1C5]"></i>
-                            <span class="font-bold text-[#4FD1C5] tracking-wide">ARIA</span>
+                            <i class="fa-solid fa-robot text-[#A78BFA]"></i>
+                            <span class="font-bold text-[#A78BFA] tracking-wide">ARIA</span>
                         </div>
                         <p class="text-secondary text-sm leading-relaxed">
                             I've analyzed customer behavior and surfaced opportunities with the highest projected ROI.
@@ -1030,7 +1030,7 @@
                         class="nexus-input w-full rounded-2xl py-4 pl-5 pr-14 text-white text-sm">
                     <button id="send-btn"
                         class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center hover:opacity-80 transition"
-                        style="background:#4FD1C5;color:#04110F;">
+                        style="background:#A78BFA;color:#04110F;">
                         <i class="fa-solid fa-paper-plane text-sm"></i>
                     </button>
                 </div>
@@ -1061,7 +1061,7 @@
                     <div class="theater-variant-block va">
                         <div>
                             <span
-                                style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(147,197,253,.6);display:block;margin-bottom:3px;">Variant
+                                style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(125,211,252,.6);display:block;margin-bottom:3px;">Variant
                                 A (FOMO)</span>
                             <span id="ctr-a-display" class="text-xl font-bold">0.0% CTR</span>
                         </div>
@@ -1072,7 +1072,7 @@
                     <div class="theater-variant-block vb">
                         <div>
                             <span
-                                style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(216,180,254,.6);display:block;margin-bottom:3px;">Variant
+                                style="font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(196,181,253,.6);display:block;margin-bottom:3px;">Variant
                                 B (Reward)</span>
                             <span id="ctr-b-display" class="text-xl font-bold">0.0% CTR</span>
                         </div>
@@ -1095,7 +1095,7 @@
                                 <span id="count-whatsapp" class="text-white font-bold ml-auto">0</span>
                             </span>
                             <span class="flex items-center gap-2">
-                                <i class="fa-solid fa-message text-[#3B82F6]"></i>
+                                <i class="fa-solid fa-message text-[#22D3EE]"></i>
                                 <span class="text-secondary">SMS</span>
                                 <span id="count-sms" class="text-white font-bold ml-auto">0</span>
                             </span>
@@ -1114,7 +1114,7 @@
                                 style="font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-muted);font-weight:700;">
                                 ⚖️ Why-Not ROI</p>
                             <span
-                                style="font-size:.6rem;color:#4FD1C5;cursor:pointer;display:flex;align-items:center;gap:4px;"
+                                style="font-size:.6rem;color:#A78BFA;cursor:pointer;display:flex;align-items:center;gap:4px;"
                                 onclick="fetchWhyNotData()">
                                 <i class="fa-solid fa-arrows-rotate"></i> Refresh
                             </span>
@@ -1420,18 +1420,18 @@
                             if (event.status === 'Sent') { statusColor = 'text-blue-400 border-blue-400/30 bg-blue-400/10'; }
                             if (event.status === 'Delivered') { statusColor = 'text-purple-400 border-purple-400/30 bg-purple-400/10'; icon = 'fa-check-double'; }
                             if (event.status === 'Opened') { statusColor = 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10'; icon = 'fa-envelope-open'; }
-                            if (event.status === 'Clicked') { statusColor = 'text-[#4FD1C5] border-[#4FD1C5]/30 bg-[#4FD1C5]/10'; icon = 'fa-hand-pointer'; }
+                            if (event.status === 'Clicked') { statusColor = 'text-[#A78BFA] border-[#A78BFA]/30 bg-[#A78BFA]/10'; icon = 'fa-hand-pointer'; }
                             if (event.status === 'Purchased') { statusColor = 'text-[#00E676] border-[#00E676]/50 bg-[#00E676]/20 font-bold'; icon = 'fa-cart-shopping'; }
                             if (event.status === 'PermanentlyFailed') { statusColor = 'text-red-500 border-red-500/30 bg-red-500/10 font-bold'; icon = 'fa-circle-xmark'; }
 
                             let channelIcon = 'fa-brands fa-whatsapp text-[#25D366]';
-                            if (event.channel === 'SMS') channelIcon = 'fa-solid fa-message text-[#3B82F6]';
+                            if (event.channel === 'SMS') channelIcon = 'fa-solid fa-message text-[#22D3EE]';
                             else if (event.channel === 'Email') channelIcon = 'fa-solid fa-envelope text-[#F97316]';
 
                             const variant = event.variant || 'A';
                             const variantBorder = variant === 'A'
-                                ? 'border: 2px solid #3B82F6 !important;'
-                                : 'border: 2px solid #A855F7 !important;';
+                                ? 'border: 2px solid #22D3EE !important;'
+                                : 'border: 2px solid #A78BFA !important;';
 
                             const eventHtml = `
                                 <div class="flex items-center gap-4 py-2 px-4 rounded-xl border ${statusColor} animate-fade-in-up" style="${variantBorder}">
@@ -1704,8 +1704,8 @@
             const typingHtml = `
             <div id="${typingId}" class="aria-message rounded-[24px] rounded-tl-sm p-4 max-w-[85%] mb-4 opacity-70">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-robot text-[#4FD1C5] animate-pulse"></i>
-                    <span class="text-sm text-[#4FD1C5]">ARIA is analyzing…</span>
+                    <i class="fa-solid fa-robot text-[#A78BFA] animate-pulse"></i>
+                    <span class="text-sm text-[#A78BFA]">ARIA is analyzing…</span>
                 </div>
             </div>`;
             chatWindow.insertAdjacentHTML('beforeend', typingHtml);
@@ -1752,8 +1752,8 @@
                 const ariaHtml = `
                 <div class="aria-message rounded-[24px] rounded-tl-sm p-5 max-w-[85%] mb-4">
                     <div class="flex items-center gap-2 mb-3">
-                        <i class="fa-solid fa-robot text-[#4FD1C5]"></i>
-                        <span class="font-bold text-[#4FD1C5] tracking-wide">ARIA</span>
+                        <i class="fa-solid fa-robot text-[#A78BFA]"></i>
+                        <span class="font-bold text-[#A78BFA] tracking-wide">ARIA</span>
                     </div>
                     <p class="text-secondary text-sm leading-relaxed">${formattedReply}</p>
                 </div>`;
